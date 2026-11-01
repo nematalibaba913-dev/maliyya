@@ -712,8 +712,10 @@
                 if(rec.targetMonths) rec.targetMonths.forEach(tm => m.add(tm));
             });
             creditItems().forEach(it => m.add(it.monthKey));   // Kreditlərin aylıq ödənişləri (cari il)
-            m.add(getCurrentMonthKey()); 
-            return Array.from(m).sort(); 
+            // Datası olmayan aylar (əvvəlki/sonrakı) nəzərə alınmır
+            let list = Array.from(m).filter(k => getCombinedDataForMonth(k).length > 0).sort();
+            if (!list.length) list = [getCurrentMonthKey()];
+            return list; 
         }
         
         // Kreditlər səhifəsindəki aylıq ödənişlər — cari il üzrə avtomatik
