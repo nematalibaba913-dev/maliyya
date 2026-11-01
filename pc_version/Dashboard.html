@@ -1124,11 +1124,10 @@ function renderKPI(){
   const exp = nonTr.filter(r=>r.type==='xerc' ).reduce((s,r)=>s+r.amount,0);
   // Borc əməliyyatları artıq Gəlir/Xərc kimi mf_transactions-dadır
   // mf_transfers-dan əlavə hesablama lazım deyil — ikiqat sayılma riski aradan qalxır
-  // Borc hissəsi: borc logu əvəzinə "Borc Balansı" (alınan − qaytarılan fərqi)
+  // Borc xalis balansa aid deyil: borc logu sətirləri çıxarılır
   const brRows = nonTr.filter(r=>r.source==='borc_log');
   const brLogNet = brRows.reduce((s,r)=>s+(r.type==='gelir'?r.amount:-r.amount),0);
-  const debtNet = window.MFDebt ? MFDebt.net(MFDebt.read()) : brLogNet;
-  const bal = openingBalance + inc - exp - brLogNet + debtNet;
+  const bal = openingBalance + inc - exp - brLogNet;
   const ic  = nonTr.filter(r=>r.type==='gelir').length;
   const ec  = nonTr.filter(r=>r.type==='xerc').length;
 
@@ -1156,18 +1155,22 @@ function renderKPI(){
 
   // ── Proqnoz səhifəsindən (forecast) — Cəmi Gəlir / Cəmi Xərc (bütün aylar) ──
   try{
-    const budgetData        = JSON.parse(localStorage.getItem('budgetApp2025')||'[]');
+    let budgetData        = JSON.parse(localStorage.getItem('budgetApp2025')||'[]');
     const recurringData     = JSON.parse(localStorage.getItem('budgetRecurring2025')||'[]');
     const recurringOverrides= JSON.parse(localStorage.getItem('budgetOverrides2025')||'{}');
 
     // Bütün ayları tap
+    // Proqnoz gələcək üçündür: keçmiş aylar nəzərə alınmır
+    const _d0 = new Date(); const curKey = _d0.getFullYear() + '-' + String(_d0.getMonth()+1).padStart(2,'0');
+    const isFut = k => !!k && k >= curKey;
+    const _bd = budgetData; budgetData = _bd.filter(i => isFut(i.monthYear || String(i.date||'').slice(0,7)));
     let allMonths = new Set();
     budgetData.forEach(i => i.monthYear && allMonths.add(i.monthYear));
     recurringData.forEach(rec => { if(rec.targetMonths) rec.targetMonths.forEach(m => allMonths.add(m)); });
     // Kreditlərin aylıq ödənişləri (cari il) — Proqnoz səhifəsi ilə eyni
-    const crPlan = window.MFCreditPlan ? MFCreditPlan.items(new Date().getFullYear()) : [];
+    const crPlan = (window.MFCreditPlan ? MFCreditPlan.items(new Date().getFullYear()) : []).filter(c => isFut(c.monthKey));
     crPlan.forEach(c => allMonths.add(c.monthKey));
-    const months = Array.from(allMonths).filter(Boolean).sort();
+    const months = Array.from(allMonths).filter(isFut).sort();
 
     if(months.length){
       let fInc = 0, fExp = 0;
@@ -1285,8 +1288,7 @@ function renderKPI(){
     try{
       const crs = JSON.parse(localStorage.getItem('kreditler_v2')||'[]');
       crs.forEach(cr=>{
-        // hidden kreditlər kreditlər ekranında görünmür amma hesablamaya daxildir
-        // archived (köhnə sistem) da daxildir (legacy uyğunluq)
+        if(cr.hidden) return;   // Kreditlər səhifəsindəki "Qalıq Borc" ilə eyni
         const paid = (cr.payments||[]).reduce((s,p)=>s+(p.amount||0),0);
         const rem  = Math.max(0, (cr.totalPayable||0) - paid);
         if(rem > 0){ kreditBorc += rem; kreditCnt++; kreditAyliq += (cr.monthly||0); }
@@ -1299,7 +1301,8 @@ function renderKPI(){
 
     // Ümumi öhdəlik
     const tdEl = document.getElementById('k-total-debt');
-    if(tdEl){ tdEl.textContent = '-' + fmt(borcTotal + kreditBorc); }
+    if(tdEl){ const oblig = (window.MFDebt ? MFDebt.net(trs) : borcTotal) + kreditBorc;   // Borc Balansı + kreditlərdəki qalıq borc
+      tdEl.textContent = (oblig>0?'-':'') + fmt(Math.abs(oblig)); }
   } catch(e) {}
 }
 

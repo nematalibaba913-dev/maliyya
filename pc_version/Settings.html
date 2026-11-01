@@ -189,8 +189,7 @@ async function snapshot(){
   const b = sumLog(cl, t=>parseFloat(t.amount||t.Mebleg)||0, t=>t.type||t.Emeliyyat);
   const c = sumLog(bl, t=>parseFloat(t.amount||t.Mebleg)||0, t=>t.type||t.Emeliyyat);
   const d = sumLog(lg, t=>parseFloat(t.Mebleg)||0, t=>t.Emeliyyat);
-  const debtNet = window.MFDebt ? MFDebt.net(tr) : (c.inc - c.exp);
-  const balance = r2(ob + a.inc+b.inc+d.inc - (a.exp+b.exp+d.exp) + debtNet);
+  const balance = r2(ob + a.inc+b.inc+d.inc - (a.exp+b.exp+d.exp));   // borc xalis balansa aid deyil
   return { gx, cl, bl, lg, cr, tr, ob, balance };
 }
 

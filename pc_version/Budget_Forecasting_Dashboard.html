@@ -713,7 +713,8 @@
             });
             creditItems().forEach(it => m.add(it.monthKey));   // Kreditlərin aylıq ödənişləri (cari il)
             // Datası olmayan aylar (əvvəlki/sonrakı) nəzərə alınmır
-            let list = Array.from(m).filter(k => getCombinedDataForMonth(k).length > 0).sort();
+            const curKey = getCurrentMonthKey();
+            let list = Array.from(m).filter(k => k >= curKey && getCombinedDataForMonth(k).length > 0).sort();
             if (!list.length) list = [getCurrentMonthKey()];
             return list; 
         }
