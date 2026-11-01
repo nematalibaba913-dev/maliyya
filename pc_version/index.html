@@ -14,7 +14,6 @@
 <script src="mf-sync.js"></script>
 <script src="sync.js?v=31"></script>
 <script src="backup.js?v=31"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -241,24 +240,6 @@ html,body{
   .balance-amount{font-size:32px;}
 }
 
-.export-btn, .import-btn{
-  padding:7px 16px;border-radius:10px;
-  font-family:'Montserrat',sans-serif;font-weight:600;font-size:11px;letter-spacing:0.4px;
-  cursor:pointer;transition:background .2s,color .2s,border-color .2s;
-  text-align:center;
-}
-.export-btn{
-  border:1px solid rgba(255,255,255,0.1);
-  background:rgba(255,255,255,0.05);color:var(--dim);
-}
-.export-btn:hover{background:rgba(255,255,255,0.1);color:var(--muted);border-color:rgba(255,255,255,0.2);}
-.import-btn{
-  border:1px solid rgba(255,255,255,0.1);
-  background:rgba(255,255,255,0.05);color:var(--dim);
-}
-.import-btn:hover{background:rgba(255,255,255,0.1);color:var(--muted);border-color:rgba(255,255,255,0.2);}
-[data-theme=light] .export-btn,[data-theme=light] .import-btn{background:rgba(0,0,0,0.04);color:#9ca3af;border-color:rgba(0,0,0,0.1);}
-[data-theme=light] .export-btn:hover,[data-theme=light] .import-btn:hover{background:rgba(0,0,0,0.08);color:#6b7280;}
 
 </style>
 <link rel="stylesheet" href="mf-mobile.css">
@@ -362,7 +343,7 @@ html,body{
 
 </div>
 
-  <!-- TEMA + EXPORT + IMPORT — bir sətir -->
+  <!-- TEMA -->
   <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:8px 0 24px;width:100%;">
     <div id="theme-toggle-btn" onclick="toggleGlobalTheme()" title="Tema dəyiş" style="cursor:pointer;user-select:none;flex-shrink:0;">
       <div id="theme-track" style="
@@ -381,8 +362,6 @@ html,body{
         </div>
       </div>
     </div>
-    <button class="export-btn" onclick="exportExcel()">Export</button>
-    <button class="import-btn" onclick="importExcel()">Import</button>
   </div>
 
   </div>
@@ -543,306 +522,6 @@ function toggleGlobalTheme(){
   const t = localStorage.getItem('page_theme_index') || 'dark';
   applyIndexTheme(t);
 })();
-
-// ── Excel Export (lokal datalar) ───────────────────────
-async function readArr(key, preferBudget=false){
-  const parseArr = v => {
-    if(!v) return [];
-    if(Array.isArray(v)) return v;
-    try{ const p = JSON.parse(v); return Array.isArray(p) ? p : []; }catch(e){ return []; }
-  };
-  let arr = parseArr(localStorage.getItem(key));
-  if(window.BudgetDB){
-    try{
-      const val = preferBudget && BudgetDB.getBudget ? await BudgetDB.getBudget(key) : await BudgetDB.getSetting(key);
-      const parsed = parseArr(val);
-      if(parsed.length) arr = parsed;
-    }catch(e){}
-  }
-  return arr;
-}
-
-// ── File System Access API — IndexedDB ilə persist ──────
-// Handle-i IndexedDB-də saxlayırıq ki reload-dan sonra da qalsın
-const _IDB_NAME = 'mf_fs_handles';
-const _IDB_STORE = 'handles';
-const _IDB_KEY   = 'export_dir';
-
-function _openHandleDB(){
-  return new Promise((res, rej) => {
-    const req = indexedDB.open(_IDB_NAME, 1);
-    req.onupgradeneeded = e => e.target.result.createObjectStore(_IDB_STORE);
-    req.onsuccess = e => res(e.target.result);
-    req.onerror   = () => rej(req.error);
-  });
-}
-async function _saveHandle(handle){
-  try{
-    const db = await _openHandleDB();
-    const tx = db.transaction(_IDB_STORE, 'readwrite');
-    tx.objectStore(_IDB_STORE).put(handle, _IDB_KEY);
-    await new Promise((res,rej) => { tx.oncomplete=res; tx.onerror=rej; });
-    db.close();
-  } catch(e){}
-}
-async function _loadHandle(){
-  try{
-    const db = await _openHandleDB();
-    const handle = await new Promise((res,rej) => {
-      const req = db.transaction(_IDB_STORE,'readonly').objectStore(_IDB_STORE).get(_IDB_KEY);
-      req.onsuccess = () => res(req.result || null);
-      req.onerror   = () => rej(req.error);
-    });
-    db.close();
-    return handle || null;
-  } catch(e){ return null; }
-}
-async function _clearHandle(){
-  try{
-    const db = await _openHandleDB();
-    const tx = db.transaction(_IDB_STORE,'readwrite');
-    tx.objectStore(_IDB_STORE).delete(_IDB_KEY);
-    db.close();
-  } catch(e){}
-}
-
-async function _ensureDirPermission(handle){
-  try{
-    const perm = await handle.queryPermission({ mode:'readwrite' });
-    if(perm === 'granted') return true;
-    const req = await handle.requestPermission({ mode:'readwrite' });
-    return req === 'granted';
-  } catch(e){ return false; }
-}
-
-async function _getDir(){
-  if(!window.showDirectoryPicker) return null;
-
-  // IndexedDB-dən saxlanmış handle-i yüklə
-  let handle = await _loadHandle();
-  if(handle){
-    const ok = await _ensureDirPermission(handle);
-    if(ok) return handle;
-    // İcazə yoxdur — silib yenidən seçdiririk
-    await _clearHandle();
-  }
-
-  // Yeni qovluq seçimi
-  try{
-    handle = await window.showDirectoryPicker({ mode:'readwrite', startIn:'documents' });
-    await _saveHandle(handle);
-    return handle;
-  } catch(e){
-    return null; // istifadəçi ləğv etdi
-  }
-}
-
-async function _buildWorkbook(){
-  if(typeof XLSX === 'undefined') throw new Error('XLSX kitabxanası yüklənmədi');
-  const wb = XLSX.utils.book_new();
-
-  const gx = await readArr('gelirxerc_cache', true);
-  XLSX.utils.book_append_sheet(wb,
-    XLSX.utils.json_to_sheet(gx.map(r=>({
-      'Tarix':r.Tarix||'','Əməliyyat':r.Emeliyyat||'','Kateqoriya':r.Kateqoriya||'','Qeyd':r.Qeyd||'','Məbləğ':r.Mebleg||''
-    }))), 'GelirXerc_Log');
-
-  const credits = await readArr('kreditler_v2');
-  XLSX.utils.book_append_sheet(wb,
-    XLSX.utils.json_to_sheet(credits.map(c=>({
-      'id':c.id,'Ad':c.name,'Məbləğ':c.taken,'Aylıq':c.monthly,'Müddət(ay)':c.termMonths,
-      'Faiz%':c.rate,'Başlama':c.startDate,'Bitmə':c.endDate,'Toplam Ödəmə':c.totalPayable,
-      'Ödəniş sayı':(c.payments||[]).length,'Gizli?':c.hidden?'Bəli':'Xeyr'
-    }))), 'Kreditler');
-
-  const creditLog = await readArr('credit_log_v1');
-  XLSX.utils.book_append_sheet(wb,
-    XLSX.utils.json_to_sheet(creditLog.map(r=>({
-      'Tarix':r.date||'','Tip':r.type||'','Qeyd':r.note||'','Məbləğ':r.amount||'','KreditID':r.creditId||''
-    }))), 'Kredit_Log');
-
-  const transfers = await readArr('transfers_offline_v1');
-  XLSX.utils.book_append_sheet(wb,
-    XLSX.utils.json_to_sheet(transfers.map(t=>({
-      'id':t.id,'Növ':t.type,'Tarix':t.date,'Məbləğ':t.amount,'Ödənilib':t.paid,'Qeyd':t.note||'','Tamamlanıb?':t.done?'Bəli':'Xeyr','Ödənişlər':(t.payments||[]).length
-    }))), 'Borclar');
-
-  const borcLog = await readArr('borc_log_v1');
-  XLSX.utils.book_append_sheet(wb,
-    XLSX.utils.json_to_sheet(borcLog.map(r=>({
-      'Tarix':r.date||'','Tip':r.type||'','Qeyd':r.note||'','Məbləğ':r.amount||''
-    }))), 'Borc_Log');
-
-  const legacy = await readArr('mf_transactions');
-  XLSX.utils.book_append_sheet(wb,
-    XLSX.utils.json_to_sheet(legacy.map(r=>({
-      'Tarix':r.Tarix||'','Əməliyyat':r.Emeliyyat||'','Kateqoriya':r.Kateqoriya||'','Qeyd':r.Qeyd||'','Məbləğ':r.Mebleg||'','Mənbə':r.source||'','Status':r.status||''
-    }))), 'mf_transactions');
-
-  const budgetItems     = JSON.parse(localStorage.getItem('budgetApp2025')       || '[]');
-  const budgetRecurring = JSON.parse(localStorage.getItem('budgetRecurring2025') || '[]');
-  const budgetOverrides = JSON.parse(localStorage.getItem('budgetOverrides2025') || '{}');
-  const budgetBalances  = JSON.parse(localStorage.getItem('budgetBalances2025')  || '{}');
-
-  if(budgetItems.length){
-    XLSX.utils.book_append_sheet(wb,
-      XLSX.utils.json_to_sheet(budgetItems.map(r=>({
-        'Ay':r.monthYear||'','Növ':r.type||'','Kateqoriya':r.category||'','Qeyd':r.note||'','Məbləğ':r.amount||0,'Tarix':r.date||''
-      }))), 'Proqnoz_Qeydler');
-  }
-  if(budgetRecurring.length){
-    XLSX.utils.book_append_sheet(wb,
-      XLSX.utils.json_to_sheet(budgetRecurring.map(r=>({
-        'ID':r.id||'','Növ':r.type||'','Kateqoriya':r.category||'','Qeyd':r.note||'','Məbləğ':r.amount||0,'Hədəf Aylar':(r.targetMonths||[]).join(', ')
-      }))), 'Proqnoz_Tekrarlanan');
-  }
-  const overrideRows = Object.entries(budgetOverrides).map(([k,v])=>({'Açar':k,'Məbləğ':v}));
-  const balanceRows  = Object.entries(budgetBalances).map(([ay,v])=>({'Ay':ay,'Başlanğıc':v.start||'','Son':v.end||''}));
-  if(overrideRows.length || balanceRows.length){
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([
-      {Sheet:'Overrides'}, ...overrideRows, {}, {Sheet:'Balanslar'}, ...balanceRows
-    ]), 'Proqnoz_Diger');
-  }
-
-  return wb;
-}
-
-async function exportExcel(){
-  try{
-    const wb    = await _buildWorkbook();
-    const fname = 'maliyye_export_' + new Date().toISOString().slice(0,10) + '.xlsx';
-
-    // File System Access API cəhdi
-    if(window.showDirectoryPicker){
-      const dir = await _getDir();
-      if(dir){
-        try{
-          const fileHandle = await dir.getFileHandle(fname, { create: true });
-          const writable   = await fileHandle.createWritable();
-          const buf = XLSX.write(wb, { bookType:'xlsx', type:'buffer' });
-          await writable.write(buf);
-          await writable.close();
-          // Düymə üzərindən qısa vizual feedback
-          const btn = document.querySelector('.export-btn');
-          if(btn){ const old=btn.textContent; btn.textContent='✓'; setTimeout(()=>btn.textContent=old, 1800); }
-          return;
-        } catch(e){
-          // İcazə ləğv olundu və ya xəta — normal download-a düş
-          _clearHandle();
-        }
-      }
-    }
-
-    // Fallback: normal brauzer download
-    XLSX.writeFile(wb, fname);
-  } catch(e){
-    alert('Export xətası: ' + e.message);
-  }
-}
-// ── IMPORT ──────────────────────────────────────────────
-async function importExcel(){
-  if(typeof XLSX === 'undefined'){ alert('XLSX kitabxanası yüklənmədi'); return; }
-
-  // Xəbərdarlıq
-  const warn = confirm(
-    '⚠️ XƏBƏRDARLIQ\n\n' +
-    'Bu əməliyyat mövcud məlumatların üzərinə yazar.\n\n' +
-    'Davam etmək istəyirsiniz?'
-  );
-  if(!warn) return;
-
-  // Fayl seçimi — hər dəfə
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.xlsx';
-  input.onchange = function(){
-    const file = input.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = async function(ev){
-    try{
-      const buf  = ev.target.result;
-      const wb   = XLSX.read(buf, { type:'array' });
-
-      // Toqquşma yoxlaması — mövcud datalar varmı?
-      const conflicts = [];
-      const checks = [
-        ['gelirxerc_cache',     'GəlirXərc Log',       'GelirXerc_Log'],
-        ['kreditler_v2',        'Kreditlər',           'Kreditler'],
-        ['credit_log_v1',       'Kredit Loqu',         'Kredit_Log'],
-        ['transfers_offline_v1','Borclar',             'Borclar'],
-        ['borc_log_v1',         'Borc Loqu',           'Borc_Log'],
-        ['mf_transactions',     'Köhnə əməliyyatlar',  'mf_transactions'],
-      ];
-      for(const [lsKey, label, sheetName] of checks){
-        const existing = await readArr(lsKey, lsKey==='gelirxerc_cache');
-        const inFile   = wb.SheetNames.includes(sheetName)
-          ? XLSX.utils.sheet_to_json(wb.Sheets[sheetName])
-          : [];
-        if(existing.length > 0 && inFile.length > 0){
-          conflicts.push(`• ${label}: cari ${existing.length} sətir → faylda ${inFile.length} sətir`);
-        }
-      }
-
-      if(conflicts.length > 0){
-        const ok = confirm(
-          '⚠️ TOQQUŞMA AŞKARLANDI\n\n' +
-          'Aşağıdakı məlumatlar mövcuddur və üzərinə yazılacaq:\n\n' +
-          conflicts.join('\n') +
-          '\n\nYenə də davam etmək istəyirsiniz?'
-        );
-        if(!ok) return;
-      }
-
-      // İmport et
-      const saveLS = (key, arr) => {
-        localStorage.setItem(key, JSON.stringify(arr));
-        if(window.BudgetDB) try{ BudgetDB.setSetting(key, arr); }catch(e){}
-      };
-
-      for(const [lsKey,, sheetName] of checks){
-        if(!wb.SheetNames.includes(sheetName)) continue;
-        const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName]);
-        if(!rows.length) continue;
-
-        if(sheetName === 'GelirXerc_Log'){
-          saveLS(lsKey, rows.map(r=>({ Tarix:r['Tarix']||'', Emeliyyat:r['Əməliyyat']||'', Kateqoriya:r['Kateqoriya']||'', Qeyd:r['Qeyd']||'', Mebleg:String(r['Məbləğ']||'') })));
-        } else if(sheetName === 'Kreditler'){
-          saveLS(lsKey, rows.map(r=>({ id:r['id'], name:r['Ad'], taken:r['Məbləğ'], monthly:r['Aylıq'], termMonths:r['Müddət(ay)'], rate:r['Faiz%'], startDate:r['Başlama'], endDate:r['Bitmə'], totalPayable:r['Toplam Ödəmə'], hidden:r['Gizli?']==='Bəli', payments:[] })));
-        } else if(sheetName === 'Kredit_Log'){
-          saveLS(lsKey, rows.map(r=>({ date:r['Tarix']||'', type:r['Tip']||'', note:r['Qeyd']||'', amount:r['Məbləğ']||0, creditId:r['KreditID']||'' })));
-        } else if(sheetName === 'Borclar'){
-          saveLS(lsKey, rows.map(r=>({ id:r['id'], type:r['Növ'], date:r['Tarix'], amount:r['Məbləğ'], paid:r['Ödənilib'], note:r['Qeyd']||'', done:r['Tamamlanıb?']==='Bəli', payments:[] })));
-        } else if(sheetName === 'Borc_Log'){
-          saveLS(lsKey, rows.map(r=>({ date:r['Tarix']||'', type:r['Tip']||'', note:r['Qeyd']||'', amount:r['Məbləğ']||0 })));
-        } else if(sheetName === 'mf_transactions'){
-          saveLS(lsKey, rows.map(r=>({ Tarix:r['Tarix']||'', Emeliyyat:r['Əməliyyat']||'', Kateqoriya:r['Kateqoriya']||'', Qeyd:r['Qeyd']||'', Mebleg:String(r['Məbləğ']||''), source:r['Mənbə']||'', status:r['Status']||'' })));
-        }
-      }
-
-      // Proqnoz dataları
-      if(wb.SheetNames.includes('Proqnoz_Qeydler')){
-        const rows = XLSX.utils.sheet_to_json(wb.Sheets['Proqnoz_Qeydler']);
-        localStorage.setItem('budgetApp2025', JSON.stringify(rows.map(r=>({ monthYear:r['Ay']||'', type:r['Növ']||'', category:r['Kateqoriya']||'', note:r['Qeyd']||'', amount:r['Məbləğ']||0, date:r['Tarix']||'' }))));
-      }
-      if(wb.SheetNames.includes('Proqnoz_Tekrarlanan')){
-        const rows = XLSX.utils.sheet_to_json(wb.Sheets['Proqnoz_Tekrarlanan']);
-        localStorage.setItem('budgetRecurring2025', JSON.stringify(rows.map(r=>({ id:r['ID']||'', type:r['Növ']||'', category:r['Kateqoriya']||'', note:r['Qeyd']||'', amount:r['Məbləğ']||0, targetMonths:(r['Hədəf Aylar']||'').split(', ').filter(Boolean) }))));
-      }
-
-      window.dispatchEvent(new CustomEvent('sync-ok', { detail:'import' }));
-
-      const btn = document.querySelector('.import-btn');
-      if(btn){ const old=btn.textContent; btn.textContent='✓'; setTimeout(()=>btn.textContent=old, 1800); }
-
-    } catch(err){
-      alert('Import xətası: ' + err.message);
-    }
-    }; // reader.onload end
-    reader.readAsArrayBuffer(file);
-  };
-  input.click();
-}
 
 </script>
 </body>
