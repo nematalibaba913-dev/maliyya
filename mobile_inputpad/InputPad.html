@@ -154,7 +154,6 @@ async function _flushQueue() {
   }
 }
 window.addEventListener('online', _flushQueue);
-window.addEventListener('mf-signed-in', _flushQueue);
 
 function submitTx() {
   const a = parseFloat(amt);

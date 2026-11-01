@@ -246,6 +246,7 @@
     getToken: getToken
   };
   window.MFDB = MFDB;
+  window.MFRest = rest;
 
   // Sessiya yoxdursa (və ya konfiq yoxdursa) səhifə kilidlənir
   if (!configured() || !loadS()) showLogin();

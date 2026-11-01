@@ -1,0 +1,25 @@
+/* mf-mobile.css — telefon uyğunluğu (yalnız dar ekranda işləyir, PC görünüşünə toxunmur) */
+@media (max-width: 900px) {
+  [style*="grid-template-columns:repeat(3,1fr)"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 640px) {
+  html, body { max-width: 100vw; }
+  /* inline grid-lər media sorğularını əzir — burada üstələyirik */
+  [style*="grid-template-columns:repeat(3,1fr)"],
+  [style*="grid-template-columns:1fr 1fr 1fr"],
+  [style*="grid-template-columns:1fr 3fr"],
+  [style*="grid-template-columns:2fr 1fr"] { grid-template-columns: minmax(0, 1fr) !important; }
+  [style*="grid-template-columns:repeat(4,1fr)"],
+  .kpi-row, .kpi-row2, .kpi-row3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  [style*="grid-column:"] { grid-column: auto !important; grid-row: auto !important; }
+  td:first-child, th:first-child { white-space: nowrap; }
+  .kpi, .card, .sum-card, .credit-card, .tr-card, .chart-section { min-width: 0; }
+  /* Geniş cədvəllər səhifəni yox, özünü sürüşdürür */
+  table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .content { padding-left: 12px !important; padding-right: 12px !important; }
+  .modal { width: calc(100vw - 24px) !important; }
+  .cr-stats { grid-template-columns: 1fr 1fr !important; }
+  .pay-row { flex-wrap: wrap; gap: 8px; }
+  .header { gap: 8px; }
+  textarea { max-width: 100%; }
+}

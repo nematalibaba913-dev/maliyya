@@ -13,6 +13,7 @@
   </script>
   <script src="supabase-config.js"></script>
   <script src="mf-supabase.js"></script>
+<script src="mf-sync.js"></script>
   <script src="db.js"></script>
   <style>
     :root{
@@ -68,6 +69,7 @@
     [data-theme=light] .home-fab span{background:#374151;}
     [data-theme=light] .home-fab:hover{background:rgba(240,244,248,0.95);}
   </style>
+<link rel="stylesheet" href="mf-mobile.css">
 </head>
 <body>
   <a class="home-fab" href="index.html" title="Ana səhifə"><span></span><span></span><span></span></a>
@@ -291,53 +293,10 @@
       render();
     }
 
-    // ── Supabase inbox → log (mobil InputPad-dən gələnləri avtomatik əlavə et) ──
-    let _importing = false;
-    async function importInbox(){
-      if(_importing || !window.MFDB || !window.MFAuth || !MFAuth.session()) return;
-      _importing = true;
-      try{
-        const rows = await MFDB.pullNew();
-        if(!rows.length) return;
-        const have = new Set((ROWS||[]).filter(r=>r && r.id).map(r=>r.id));
-        const add = [], ack = [];
-        rows.forEach(r=>{
-          ack.push(r.id);
-          if(have.has(r.id)) return;
-          have.add(r.id);
-          add.push({
-            id: r.id,
-            Tarix: r.tarix || new Date().toISOString().split('T')[0],
-            Emeliyyat: r.emeliyyat || 'Xərc',
-            Kateqoriya: r.kateqoriya || '',
-            Qeyd: r.qeyd || '',
-            Mebleg: String(r.mebleg || '0')
-          });
-        });
-        if(add.length){
-          ROWS = (ROWS || []).concat(add);
-          await saveCache();   // əvvəlcə yadda saxla, sonra inbox-da 'processed' et
-          render();
-          document.getElementById('summary').textContent = `${add.length} yeni sətir mobildən əlavə olundu · Ümumi sətir sayı: ${ROWS.length}`;
-          const now = new Date();
-          document.getElementById('last-update').textContent = `Son əlavə: ${fmtDate(now)} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-        }
-        await MFDB.markProcessed(ack);
-      }catch(e){
-        console.warn('[inbox] import xəta:', e.message);
-      }finally{
-        _importing = false;
-      }
-    }
-
     // İlk yükləmə: cache-dən oxu və göstər
     (async function(){
       await loadCache();
       render();
-      importInbox();
-      setInterval(importInbox, 10000);
-      document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) importInbox(); });
-      window.addEventListener('mf-signed-in', importInbox);
     })();
   </script>
 </body>
