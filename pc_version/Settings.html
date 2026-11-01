@@ -93,6 +93,17 @@ input:focus{border-color:var(--blue);}
     </div>
   </div>
 
+  <!-- Ehtiyat nüsxə -->
+  <div class="card">
+    <h2>💾 Ehtiyat nüsxə</h2>
+    <p>Appın bütün datası (loglar, kreditlər, borclar, büdcə proqnozu, başlanğıc qalığı) bir fayla yazılır. Faylı yükləsəniz, mövcud data tamamilə həmin fayldakı ilə əvəz olunur.</p>
+    <div class="row">
+      <button class="btn btn-blue" id="bk-export">⬇ Export (endir)</button>
+      <button class="btn btn-ghost" id="bk-import">⬆ Import (yüklə)</button>
+      <input type="file" id="bk-file" accept=".json,application/json" style="display:none">
+    </div>
+  </div>
+
   <!-- Növbəti ilə keç -->
   <div class="card">
     <h2>📅 Növbəti ilə keç</h2>
@@ -211,9 +222,22 @@ function toast(msg){
 }
 
 // Ehtiyat nüsxə: bütün açarlar bir JSON faylında
-function downloadBackup(tag){
-  const out = { app:'maliyya', kind:tag, exportedAt:new Date().toISOString(), data:{} };
-  ALL_KEYS.forEach(k=>{ const v = localStorage.getItem(k); if(v != null) out.data[k] = v; });
+async function collectData(){
+  const data = {};
+  for(const k of ALL_KEYS){
+    let v = localStorage.getItem(k);
+    if(v == null || v === '' || v === '[]'){
+      try{
+        if(k === 'mf_opening_bal'){ const o = await readOpening(); if(o) v = String(o); }
+        else if(!(k === 'budgetOverrides2025' || k === 'budgetBalances2025')){ const a = await readArr(k); if(a.length) v = JSON.stringify(a); }
+      }catch(e){}
+    }
+    if(v != null) data[k] = v;
+  }
+  return data;
+}
+async function downloadBackup(tag){
+  const out = { app:'maliyya', kind:tag, exportedAt:new Date().toISOString(), data: await collectData() };
   const blob = new Blob([JSON.stringify(out,null,2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -278,7 +302,7 @@ $('ny-open').onclick = async ()=>{
     $('m-go').disabled = true;
     const withForecast = $('ny-fc').checked;
     try{
-      downloadBackup('il-sonu');
+      await downloadBackup('il-sonu');
       const bal = s.balance;
       for(const k of LOG_KEYS) await setKey(k, '[]');
       await setKey('mf_opening_bal', String(bal));
@@ -346,7 +370,7 @@ $('rs-open').onclick = async ()=>{
       $('m-final').onclick = async ()=>{
         $('m-final').disabled = true;
         try{
-          downloadBackup('tam-sifirlama');
+          await downloadBackup('tam-sifirlama');
           for(const k of ALL_KEYS) await setKey(k, null);
           closeModal(); await refresh();
           toast('Data sıfırlandı');
@@ -355,6 +379,48 @@ $('rs-open').onclick = async ()=>{
         }
       };
     };
+  };
+};
+
+// ─────────────────────────────────────────────
+// Ehtiyat nüsxə: export / import
+// ─────────────────────────────────────────────
+$('bk-export').onclick = async ()=>{ await downloadBackup('tam'); toast('Ehtiyat nüsxə endirildi'); };
+$('bk-import').onclick = ()=> $('bk-file').click();
+$('bk-file').onchange = async (e)=>{
+  const f = e.target.files[0]; e.target.value = '';
+  if(!f) return;
+  let obj;
+  try{ obj = JSON.parse(await f.text()); }catch(err){ return toast('Fayl oxunmadı: düzgün JSON deyil'); }
+  if(!obj || obj.app !== 'maliyya' || !obj.data || typeof obj.data !== 'object') return toast('Bu, appın ehtiyat nüsxə faylı deyil');
+  const keys = Object.keys(obj.data).filter(k=>ALL_KEYS.includes(k));
+  if(!keys.length) return toast('Faylda tanınan data yoxdur');
+  const cnt = k => { try{ const a = JSON.parse(obj.data[k]||'[]'); return Array.isArray(a) ? a.length : 0; }catch(e){ return 0; } };
+  const s = await refresh();
+  const when = obj.exportedAt ? new Date(obj.exportedAt).toLocaleString('az-AZ') : 'məlum deyil';
+  showModal(`
+    <h3>⬆ Ehtiyat nüsxəni yüklə</h3>
+    <p>Fayl: <b style="color:var(--text)">${String(f.name).replace(/[<>&]/g,'')}</b><br>Tarix: ${when}</p>
+    <ul>
+      <li>Gəlir-Xərc logu: ${cnt('gelirxerc_cache') + cnt('mf_transactions')}</li>
+      <li>Kredit logu: ${cnt('credit_log_v1')}, Borc logu: ${cnt('borc_log_v1')}</li>
+      <li>Kredit: ${cnt('kreditler_v2')}, Borc: ${cnt('transfers_offline_v1')}</li>
+      <li>Başlanğıc qalığı: ${fmt(parseFloat(obj.data.mf_opening_bal)||0)}</li>
+    </ul>
+    <div class="warn">Hazırkı bütün data (${s.gx.length + s.cl.length + s.bl.length + s.lg.length} log sətri, ${s.cr.length} kredit, ${s.tr.length} borc) silinib bu fayldakı ilə əvəz olunacaq. Əvvəlcə hazırkı vəziyyətin ehtiyat nüsxəsi endiriləcək.</div>
+    <div class="btns"><button class="btn btn-ghost" id="m-cancel">Ləğv et</button><button class="btn btn-blue" id="m-go">Bəli, yüklə</button></div>`);
+  $('m-cancel').onclick = closeModal;
+  $('m-go').onclick = async ()=>{
+    $('m-go').disabled = true;
+    try{
+      await downloadBackup('import-evvel');
+      for(const k of ALL_KEYS){
+        const v = obj.data[k];
+        await setKey(k, v == null ? null : (typeof v === 'string' ? v : JSON.stringify(v)));
+      }
+      closeModal(); await refresh();
+      toast('Data fayldan bərpa olundu');
+    }catch(err){ console.error(err); closeModal(); toast('Xəta: ' + (err && err.message ? err.message : err)); }
   };
 };
 
