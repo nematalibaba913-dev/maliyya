@@ -13,6 +13,7 @@
 <script src="mf-supabase.js"></script>
 <script src="mf-sync.js"></script>
 <script src="credit-plan.js"></script>
+<script src="debt-bal.js"></script>
 <script src="db.js"></script>
 
 <meta charset="UTF-8">
@@ -1123,7 +1124,11 @@ function renderKPI(){
   const exp = nonTr.filter(r=>r.type==='xerc' ).reduce((s,r)=>s+r.amount,0);
   // Borc əməliyyatları artıq Gəlir/Xərc kimi mf_transactions-dadır
   // mf_transfers-dan əlavə hesablama lazım deyil — ikiqat sayılma riski aradan qalxır
-  const bal = openingBalance + inc - exp;
+  // Borc hissəsi: borc logu əvəzinə "Borc Balansı" (alınan − qaytarılan fərqi)
+  const brRows = nonTr.filter(r=>r.source==='borc_log');
+  const brLogNet = brRows.reduce((s,r)=>s+(r.type==='gelir'?r.amount:-r.amount),0);
+  const debtNet = window.MFDebt ? MFDebt.net(MFDebt.read()) : brLogNet;
+  const bal = openingBalance + inc - exp - brLogNet + debtNet;
   const ic  = nonTr.filter(r=>r.type==='gelir').length;
   const ec  = nonTr.filter(r=>r.type==='xerc').length;
 

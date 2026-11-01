@@ -12,6 +12,7 @@
 <script src="supabase-config.js"></script>
 <script src="mf-supabase.js"></script>
 <script src="mf-sync.js"></script>
+<script src="debt-bal.js"></script>
 <script src="sync.js?v=31"></script>
 <script src="backup.js?v=31"></script>
 
@@ -442,13 +443,12 @@ html,body{
         if(tp.includes('gəlir')||tp.includes('gelir')) income += amt;
         else expense += amt;
       });
-      // Borc log sətirləri
-      brLog.forEach(function(t){
-        var amt = parseFloat(t.amount||t.Mebleg) || 0;
-        var tp = (t.type||t.Emeliyyat||'').toLowerCase();
-        if(tp.includes('gəlir')||tp.includes('gelir')) income += amt;
-        else expense += amt;
-      });
+      // Borc hissəsi: Borclar səhifəsindəki "Borc Balansı" (alınan − qaytarılan fərqi)
+      var trList = toArr(localStorage.getItem('transfers_offline_v1'));
+      var trDB = await fromDB('transfers_offline_v1', false);
+      if(trDB.length) trList = trDB;
+      var debtNet = window.MFDebt ? MFDebt.net(trList) : 0;
+      if(debtNet >= 0) income += debtNet; else expense += -debtNet;
       // Legacy
       legacy.forEach(function(t){
         var amt = parseFloat(t.Mebleg) || 0;
