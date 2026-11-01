@@ -1,0 +1,344 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gəlir & Xərc Log</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    (function(){
+      var k = localStorage.getItem('page_theme_index') || localStorage.getItem('mf_theme') || 'dark';
+      if(k==='light') document.documentElement.setAttribute('data-theme','light');
+    })();
+  </script>
+  <script src="supabase-config.js"></script>
+  <script src="mf-supabase.js"></script>
+  <script src="db.js"></script>
+  <style>
+    :root{
+      --bg:#0f1117;--surface:#161b29;--surface2:#1d2235;--border:#252a3c;
+      --text:#e8eaf6;--muted:#9aa3c4;--dim:#4a5280;
+      --green:#2dd4bf;--red:#f87171;--blue:#4f8bff;
+    }
+    [data-theme=light]{
+      --bg:#f0f4f8;--surface:#ffffff;--surface2:#f7f9fb;--border:#e2e8f0;
+      --text:#111827;--muted:#6b7280;--dim:#9ca3af;
+      --green:#0d9488;--red:#ef4444;--blue:#3b82f6;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);padding:20px;transition:background .2s,color .2s;}
+    .wrap{max-width:1200px;margin:0 auto;}
+    .header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+    h1{font-size:20px;font-weight:700;color:var(--text);}
+    .sub{color:var(--muted);font-size:12px;margin-top:2px;}
+    .btn{border:none;border-radius:9px;padding:8px 14px;font-weight:600;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s,transform .08s;}
+    .btn:active{transform:translateY(1px);}
+    .btn-primary{background:var(--blue);color:#fff;}
+    .btn-primary:hover{opacity:.88;}
+    .btn-cancel{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+    .btn-cancel:hover{color:var(--text);}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;}
+    .muted{color:var(--muted);font-size:12px;margin-top:6px;}
+    table{width:100%;border-collapse:collapse;margin-top:10px;}
+    th,td{padding:10px 8px;font-size:13px;border-bottom:1px solid var(--border);text-align:left;vertical-align:middle;}
+    th{color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.7px;font-weight:600;}
+    tbody tr:hover{background:var(--surface2);}
+    textarea{width:100%;height:140px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text);padding:10px;font-family:'Inter',sans-serif;font-size:13px;outline:none;resize:vertical;}
+    textarea:focus{border-color:var(--blue);}
+    .pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-weight:600;font-size:11px;letter-spacing:.2px;}
+    .pill-in{background:rgba(45,212,191,.15);color:var(--green);border:1px solid rgba(45,212,191,.3);}
+    .pill-out{background:rgba(248,113,113,.15);color:var(--red);border:1px solid rgba(248,113,113,.3);}
+    /* Action buttons — minimalist */
+    .act-wrap{display:flex;align-items:center;gap:8px;}
+    .act-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:background .15s,color .15s,border-color .15s;}
+    .act-btn:hover{background:var(--surface2);color:var(--text);border-color:var(--dim);}
+    .act-btn.del:hover{background:rgba(248,113,113,.12);color:var(--red);border-color:rgba(248,113,113,.35);}
+    /* Edit form */
+    .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);}
+    .form-grid label{font-size:11px;color:var(--muted);margin-bottom:4px;display:block;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+    .form-grid input,.form-grid select{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:'Inter',sans-serif;outline:none;}
+    .form-grid input:focus,.form-grid select:focus{border-color:var(--blue);}
+    @media(max-width:640px){.form-grid{grid-template-columns:1fr;}}
+    /* Home fab */
+    .home-fab{position:fixed;bottom:20px;right:20px;width:44px;height:44px;border-radius:10px;background:rgba(30,34,50,0.82);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;z-index:9000;text-decoration:none;transition:background .18s,transform .15s;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+    .home-fab:active{transform:scale(.92);}
+    .home-fab:hover{background:rgba(50,56,80,0.95);}
+    .home-fab span{display:block;width:20px;height:2px;background:#e8eaf6;border-radius:2px;}
+    [data-theme=light] .home-fab{background:rgba(255,255,255,0.85);border-color:rgba(0,0,0,0.12);}
+    [data-theme=light] .home-fab span{background:#374151;}
+    [data-theme=light] .home-fab:hover{background:rgba(240,244,248,0.95);}
+  </style>
+</head>
+<body>
+  <a class="home-fab" href="index.html" title="Ana səhifə"><span></span><span></span><span></span></a>
+  <div class="wrap">
+    <div class="header">
+      <div>
+        <h1>Gəlir & Xərc Log</h1>
+        <div class="sub" id="last-update"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-primary" onclick="applyPaste()">Yadda saxla</button>
+        <a class="btn" style="background:#2f9e44;color:#e8fff2;border:1px solid #1b4332;box-shadow:0 8px 20px rgba(47,158,68,.35);text-decoration:none;" href="https://docs.google.com/spreadsheets/d/10NszYfXxz8dbsxu_2XadPHYa3GNaAwRiQm3dkmJI4aE/edit?usp=sharing" target="_blank" rel="noopener">Google Sheet ↗</a>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="muted" style="margin-bottom:8px;">Yapışıdr</div>
+      <textarea id="paste-box" placeholder="Tarix[TAB]Əməliyyat[TAB]Kateqoriya[TAB]Qeyd[TAB]Məbləğ..."></textarea>
+    </div>
+
+    <div class="card">
+      <div class="muted" id="summary">Yüklənir...</div>
+
+      <div class="form-grid" id="edit-form" style="display:none;">
+        <div>
+          <label for="f-date">Tarix</label>
+          <input type="date" id="f-date">
+        </div>
+        <div>
+          <label for="f-type">Əməliyyat</label>
+          <select id="f-type"><option>Gəlir</option><option>Xərc</option></select>
+        </div>
+        <div>
+          <label for="f-cat">Kateqoriya</label>
+          <input type="text" id="f-cat">
+        </div>
+        <div>
+          <label for="f-note">Qeyd</label>
+          <input type="text" id="f-note">
+        </div>
+        <div>
+          <label for="f-amt">Məbləğ</label>
+          <input type="number" step="0.01" id="f-amt">
+        </div>
+        <div style="display:flex;align-items:end;gap:8px;">
+          <button class="btn btn-primary" onclick="saveEdit()">Saxla</button>
+          <button class="btn btn-cancel" onclick="cancelEdit()">Ləğv</button>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Tarix</th><th>Əməliyyat</th><th>Kateqoriya</th><th>Qeyd</th><th>Məbləğ</th><th></th></tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="muted" id="hint"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORE_KEY = 'gelirxerc_cache';
+    let ROWS = [];
+    let editIndex = -1;
+
+    function fmtDate(d){
+      if(!d) return '';
+      const dt = new Date(d);
+      if(isNaN(dt)) return d;
+      const months = ['yan','fev','mar','apr','may','iyn','iyl','avq','sen','okt','noy','dek'];
+      return dt.getDate() + ' ' + months[dt.getMonth()] + ' ' + String(dt.getFullYear()).slice(2);
+    }
+
+    function normRow(r){
+      if(!r) return {Tarix:'',Emeliyyat:'',Kateqoriya:'',Qeyd:'',Mebleg:''};
+      return {
+        Tarix: r.Tarix||'', Emeliyyat: r.Emeliyyat||'',
+        Kateqoriya: r.Kateqoriya||'', Qeyd: r.Qeyd||'', Mebleg: r.Mebleg||''
+      };
+    }
+
+    function parsePasted(text){
+      const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+      if(!lines.length) return [];
+      // delimiter deteksiya: tab varsa tab, yoxsa ;
+      const first = lines[0];
+      const delim = first.includes('\t') ? '\t' : first.includes(';') ? ';' : ',';
+      const rows = [];
+      lines.forEach((line, idx)=>{
+        const cells = line.split(delim).map(x=>x.trim());
+        if(cells.length < 5) return;
+        if(idx===0 && cells[0].toLowerCase().includes('tarix')) return; // header skip
+        rows.push({
+          Tarix: cells[0]||'',
+          Emeliyyat: cells[1]||'',
+          Kateqoriya: cells[2]||'',
+          Qeyd: cells[3]||'',
+          Mebleg: cells[4]||''
+        });
+      });
+      return rows;
+    }
+
+    function render(){
+      const tb = document.getElementById('tbody');
+      // Orijinal indeksi saxlayaraq sırala — eyni gün daxilində orijinal sıra azalan (son əlavə üstdə)
+      const indexed = ROWS.map((r, origIdx) => ({ r: normRow(r), origIdx }));
+      indexed.sort((a, b) => {
+        const da = new Date(a.r.Tarix||0), db = new Date(b.r.Tarix||0);
+        if(db - da !== 0) return db - da;
+        return b.origIdx - a.origIdx; // eyni gündə: son əlavə üstdə
+      });
+      if(!indexed.length){
+        tb.innerHTML = '<tr><td colspan="6" style="color:#9aa3c4;">Məlumat yoxdur</td></tr>';
+      } else {
+        tb.innerHTML = indexed.map(({r, origIdx})=>`
+          <tr>
+            <td>${fmtDate(r.Tarix)}</td>
+            <td><span class="pill ${r.Emeliyyat==='Gəlir'?'pill-in':'pill-out'}">${r.Emeliyyat}</span></td>
+            <td>${r.Kateqoriya}</td>
+            <td>${r.Qeyd}</td>
+            <td>${r.Mebleg}</td>
+            <td>
+              <div class="act-wrap">
+                <button class="act-btn" title="Redaktə" onclick="startEdit(${origIdx})">✎</button>
+                <button class="act-btn del" title="Sil" onclick="delRow(${origIdx})">✕</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      }
+      document.getElementById('summary').textContent = `Sətir sayı: ${indexed.length}`;
+      document.getElementById('hint').textContent = 'Mənbə:IndexedDB';
+    }
+
+    async function saveCache(){
+      try{ localStorage.setItem(STORE_KEY, JSON.stringify(ROWS)); }catch(e){}
+      if(window.BudgetDB){
+        try{ await BudgetDB.setBudget(STORE_KEY, JSON.stringify(ROWS)); }catch(e){ console.warn('IDX save', e); }
+      }
+    }
+
+    async function loadCache(){
+      // IndexedDB əsas mənbədir — varsa onu götür, yoxdursa localStorage
+      let loaded = false;
+      if(window.BudgetDB){
+        try{
+          const v = await BudgetDB.getBudget(STORE_KEY);
+          if(v){
+            const parsed = typeof v === 'string' ? JSON.parse(v) : v;
+            if(Array.isArray(parsed) && parsed.length > 0){ ROWS = parsed; loaded = true; }
+          }
+        }catch(e){ console.warn('IDX load', e); }
+      }
+      if(!loaded){
+        try{
+          const vls = localStorage.getItem(STORE_KEY);
+          if(vls){ const parsed = JSON.parse(vls); if(Array.isArray(parsed)) ROWS = parsed; }
+        }catch(e){ console.warn('LS load', e); }
+      }
+      document.getElementById('last-update').textContent = ROWS.length ? `Son əlavə: (cache)` : '';
+    }
+
+    async function applyPaste(){
+      const text = document.getElementById('paste-box').value || '';
+      const rows = parsePasted(text);
+      if(!rows.length){
+        document.getElementById('summary').textContent = 'Heç bir sətir oxunmadı. Dilim: tab/;/, yoxlayın.';
+        return;
+      }
+      ROWS = (ROWS || []).concat(rows); // ardına əlavə et, log böyüyür
+      editIndex = -1;
+      document.getElementById('edit-form').style.display='none';
+      await saveCache();
+      render();
+      document.getElementById('summary').textContent = `Yadda saxlanıldı · Ümumi sətir sayı: ${ROWS.length}`;
+      const now = new Date();
+      document.getElementById('last-update').textContent = `Son əlavə: ${fmtDate(now)} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    }
+
+    function startEdit(idx){
+      if(idx < 0 || idx >= ROWS.length){ console.warn('startEdit: idx xaricdir', idx, ROWS.length); return; }
+      editIndex = idx;
+      const raw = ROWS[idx] || {};
+      // Birbaşa ROWS-dan oxu — normRow vasitəsilə field itməsin
+      document.getElementById('f-date').value  = raw.Tarix      || '';
+      document.getElementById('f-type').value  = raw.Emeliyyat  || 'Gəlir';
+      document.getElementById('f-cat').value   = raw.Kateqoriya || '';
+      document.getElementById('f-note').value  = raw.Qeyd       || '';
+      document.getElementById('f-amt').value   = raw.Mebleg     || '';
+      document.getElementById('edit-form').style.display='grid';
+      // Formu görünən yerə sürüşdür
+      document.getElementById('edit-form').scrollIntoView({ behavior:'smooth', block:'nearest' });
+    }
+
+    async function saveEdit(){
+      if(editIndex < 0) return;
+      ROWS[editIndex] = {
+        Tarix: document.getElementById('f-date').value,
+        Emeliyyat: document.getElementById('f-type').value,
+        Kateqoriya: document.getElementById('f-cat').value,
+        Qeyd: document.getElementById('f-note').value,
+        Mebleg: document.getElementById('f-amt').value
+      };
+      editIndex = -1;
+      document.getElementById('edit-form').style.display='none';
+      await saveCache();
+      render();
+    }
+
+    async function cancelEdit(){
+      editIndex = -1;
+      document.getElementById('edit-form').style.display='none';
+    }
+
+    async function delRow(idx){
+      ROWS.splice(idx,1);
+      editIndex = -1;
+      document.getElementById('edit-form').style.display='none';
+      await saveCache();
+      render();
+    }
+
+    // ── Supabase inbox → log (mobil InputPad-dən gələnləri avtomatik əlavə et) ──
+    let _importing = false;
+    async function importInbox(){
+      if(_importing || !window.MFDB || !window.MFAuth || !MFAuth.session()) return;
+      _importing = true;
+      try{
+        const rows = await MFDB.pullNew();
+        if(!rows.length) return;
+        const have = new Set((ROWS||[]).filter(r=>r && r.id).map(r=>r.id));
+        const add = [], ack = [];
+        rows.forEach(r=>{
+          ack.push(r.id);
+          if(have.has(r.id)) return;
+          have.add(r.id);
+          add.push({
+            id: r.id,
+            Tarix: r.tarix || new Date().toISOString().split('T')[0],
+            Emeliyyat: r.emeliyyat || 'Xərc',
+            Kateqoriya: r.kateqoriya || '',
+            Qeyd: r.qeyd || '',
+            Mebleg: String(r.mebleg || '0')
+          });
+        });
+        if(add.length){
+          ROWS = (ROWS || []).concat(add);
+          await saveCache();   // əvvəlcə yadda saxla, sonra inbox-da 'processed' et
+          render();
+          document.getElementById('summary').textContent = `${add.length} yeni sətir mobildən əlavə olundu · Ümumi sətir sayı: ${ROWS.length}`;
+          const now = new Date();
+          document.getElementById('last-update').textContent = `Son əlavə: ${fmtDate(now)} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        }
+        await MFDB.markProcessed(ack);
+      }catch(e){
+        console.warn('[inbox] import xəta:', e.message);
+      }finally{
+        _importing = false;
+      }
+    }
+
+    // İlk yükləmə: cache-dən oxu və göstər
+    (async function(){
+      await loadCache();
+      render();
+      importInbox();
+      setInterval(importInbox, 10000);
+      document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) importInbox(); });
+      window.addEventListener('mf-signed-in', importInbox);
+    })();
+  </script>
+</body>
+</html>

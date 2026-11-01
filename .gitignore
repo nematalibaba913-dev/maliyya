@@ -1,0 +1,12 @@
+.DS_Store
+Thumbs.db
+
+# Şəxsi maliyyə datası — GitHub-a getməsin
+pc_version/xls exports/
+pc_version/old backup versions htmls/
+*.xlsx
+*.rar
+maliyya_backup_*.json
+
+# Silinməsi nəzərdə tutulan köhnə fayllar
+_to_delete/

@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<script>
+(function(){
+  var k = localStorage.getItem('page_theme_transfer') || 'dark';
+  document.documentElement.setAttribute('data-theme', k);
+})();
+</script>
+
+<script src="supabase-config.js"></script>
+<script src="mf-supabase.js"></script>
+<script src="db.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Borclar</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--green:#3fb950;--red:#f85149;--blue:#58a6ff;--amber:#d29922;--purple:#a371f7;--teal:#2dd4bf;}
+[data-theme='light']{--bg:#f0f4f8;--surface:#ffffff;--border:#dde3ef;--text:#111827;--muted:#6b7fa8;--green:#10b981;--red:#f43f5e;--blue:#3b82f6;--amber:#f59e0b;--purple:#7c3aed;--teal:#0d9488;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding-bottom:120px;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topbar-title{font-size:16px;font-weight:700;}
+.back-btn{background:none;border:none;color:var(--blue);font-size:15px;cursor:pointer;}
+.content{width:100%;max-width:1200px;margin:0 auto;padding:16px 24px;}
+
+/* Summary */
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+.sum-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 14px;}
+.sum-card.full{grid-column:1/-1;}
+.sum-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:5px;}
+.sum-val{font-size:20px;font-weight:700;}
+.sum-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.c-green{color:var(--green);}
+.c-red{color:var(--red);}
+.c-blue{color:var(--blue);}
+.c-amber{color:var(--amber);}
+.c-purple{color:var(--purple);}
+
+/* Type grid */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.type-btn{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:11px 8px;cursor:pointer;text-align:center;transition:all .15s;color:var(--text);}
+.type-btn .t-icon{font-size:20px;margin-bottom:3px;}
+.type-btn .t-label{font-size:12px;font-weight:700;}
+.type-btn .t-desc{font-size:10px;color:var(--muted);margin-top:1px;}
+.type-btn.sel-borc-aldim{border-color:var(--green);background:rgba(63,185,80,.1);}
+.type-btn.sel-borc-verdim{border-color:var(--red);background:rgba(248,81,73,.1);}
+.type-btn.sel-qaytardim{border-color:var(--blue);background:rgba(88,166,255,.1);}
+.type-btn.sel-mene-qaytardi{border-color:var(--amber);background:rgba(210,153,34,.1);}
+
+/* Form */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:15px;margin-bottom:18px;}
+.form-row{margin-bottom:11px;}
+.form-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
+.form-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;outline:none;transition:border-color .15s;}
+.form-input:focus{border-color:var(--blue);}
+.form-input::placeholder{color:var(--muted);}
+.btn-submit{width:100%;background:var(--blue);color:#fff;border:none;border-radius:12px;padding:13px;font-family:'Inter',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s;}
+.btn-submit:hover{opacity:.85;}
+.excl-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;margin-bottom:10px;cursor:pointer;}
+.excl-row input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:var(--amber);}
+.excl-row label{font-size:13px;color:var(--amber);font-weight:600;cursor:pointer;line-height:1.4;}
+.excl-row .excl-desc{font-size:11px;color:var(--muted);font-weight:400;}
+
+/* Section */
+.sec-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:18px 0 10px;}
+
+/* Transfer cards */
+.tr-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 15px;margin-bottom:10px;position:relative;}
+.tr-card.income-tr{border-left:3px solid var(--green);}
+.tr-card.expense-tr{border-left:3px solid var(--red);}
+.tr-card-top{display:flex;align-items:flex-start;gap:10px;}
+.tr-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;flex-shrink:0;margin-top:2px;}
+.tr-badge.borc-aldim{background:rgba(63,185,80,.15);color:var(--green);}
+.tr-badge.qaytardim{background:rgba(248,81,73,.15);color:var(--red);}
+.tr-badge.borc-verdim{background:rgba(248,81,73,.15);color:var(--red);}
+.tr-badge.mene-qaytardi{background:rgba(63,185,80,.15);color:var(--green);}
+.tr-info{flex:1;min-width:0;}
+.tr-name{font-size:14px;font-weight:600;color:var(--text);}
+.tr-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.tr-right{text-align:right;flex-shrink:0;}
+.tr-amt{font-size:16px;font-weight:700;}
+.tr-amt.income-tr{color:var(--green);}
+.tr-amt.expense-tr{color:var(--red);}
+.tr-remaining{font-size:11px;color:var(--muted);margin-top:1px;}
+/* Progress bar */
+.tr-progress{margin-top:10px;}
+.progress-bar{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;margin-top:4px;}
+.progress-fill{height:100%;border-radius:3px;transition:width .4s;}
+.progress-fill.green{background:var(--green);}
+.progress-fill.red{background:var(--red);}
+.progress-fill.blue{background:var(--blue);}
+.progress-fill.amber{background:var(--amber);}
+.progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px;}
+/* Actions */
+.tr-actions{display:flex;gap:8px;margin-top:11px;}
+.btn-pay{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s,color .15s;}
+.btn-pay:hover{background:var(--border);color:var(--text);}
+.btn-del{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer;transition:background .15s,color .15s;}
+.btn-del:hover{background:var(--border);color:var(--text);}
+.badge-done{background:rgba(63,185,80,.15);color:var(--green);font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.btn-pay-red{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-pay-red:hover{background:rgba(248,81,73,.15);color:var(--red);border-color:rgba(248,81,73,.4);}
+.btn-pay-green{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-pay-green:hover{background:rgba(63,185,80,.15);color:var(--green);border-color:rgba(63,185,80,.4);}
+.tr-card.archived-card{opacity:.55;filter:grayscale(.4);}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px 20px;width:100%;max-width:460px;}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:6px;}
+.modal p{font-size:13px;color:var(--muted);margin-bottom:14px;}
+.modal-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:15px;outline:none;margin-bottom:14px;}
+.modal-input:focus{border-color:var(--blue);}
+.modal-btns{display:flex;gap:8px;}
+.modal-btns button{flex:1;border:none;border-radius:10px;padding:11px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+.btn-ok{background:var(--blue);color:#fff;}
+.btn-cancel{background:rgba(255,255,255,.08);color:var(--text);border:1px solid var(--border) !important;}
+
+/* Toast */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:#238636;color:#fff;padding:10px 22px;border-radius:24px;font-size:13px;font-weight:600;opacity:0;transition:all .3s;z-index:2000;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.err{background:#da3633;}
+
+.home-fab{position:fixed;bottom:20px;right:20px;width:44px;height:44px;border-radius:10px;background:rgba(30,34,50,0.82);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;z-index:9000;text-decoration:none;transition:background .18s,transform .15s;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.home-fab:active{transform:scale(.92);}
+.home-fab:hover{background:rgba(50,56,80,0.95);}
+.home-fab span{display:block;width:20px;height:2px;background:#e8eaf6;border-radius:2px;}
+
+/* Card grid — 3 sütun */
+#card-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start;}
+@media(max-width:900px){#card-list{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:560px){#card-list{grid-template-columns:1fr;}}
+#card-list .tr-card{margin-bottom:0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <button class="back-btn" style="color:#176BEF;" onclick="history.back()">‹ Geri</button>
+  <div class="topbar-title">Borclar</div>
+  <div style="width:50px"></div>
+</div>
+
+<div class="content" style="max-width:1200px;margin:0 auto;padding:16px 24px;">
+  <!-- Summary -->
+  <div class="summary">
+    <div class="sum-card"><div class="sum-label">Borc Aldım</div><div class="sum-val c-green" id="sum-ba">0 ₼</div><div class="sum-sub" id="cnt-ba">0 əməliyyat</div></div>
+    <div class="sum-card"><div class="sum-label">Borc Verdim</div><div class="sum-val c-red" id="sum-bv">0 ₼</div><div class="sum-sub" id="cnt-bv">0 əməliyyat</div></div>
+    <div class="sum-card full" style="text-align:center;">
+      <div class="sum-label">Borc Balansı</div>
+      <div class="sum-val c-purple" id="sum-net">0 ₼</div>
+      <div class="sum-sub" id="sum-net-sub">—</div>
+    </div>
+  </div>
+
+  <!-- Yeni Borc Əlavə Et toggle -->
+  <button id="btn-add-toggle" onclick="toggleAddForm()" style="width:100%;background:var(--blue);color:#fff;border:none;border-radius:12px;padding:12px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:14px;transition:opacity .15s;">+ Yeni Borc Əlavə Et</button>
+
+  <!-- Collapse form -->
+  <div id="add-form-section" style="display:none;">
+    <!-- Type -->
+    <div class="type-grid" style="grid-template-columns:1fr 1fr;">
+      <div class="type-btn" id="tb-borc-aldim" onclick="setType('borc-aldim')">
+        <div class="t-icon">💰</div><div class="t-label">Borc Aldım</div><div class="t-desc">Mənə verdilər</div>
+      </div>
+      <div class="type-btn" id="tb-borc-verdim" onclick="setType('borc-verdim')">
+        <div class="t-icon">🤝</div><div class="t-label">Borc Verdim</div><div class="t-desc">Kimə verdim</div>
+      </div>
+    </div>
+    <!-- Form -->
+    <div class="form-card">
+      <div class="form-row"><div class="form-label">Məbləğ (₼)</div><input type="number" class="form-input" id="f-amount" placeholder="0.00" step="0.01" min="0"></div>
+      <div class="form-row"><div class="form-label">Şəxs / Qeyd</div><input type="text" class="form-input" id="f-note" placeholder="Ad, qeyd (boş ola bilər)"></div>
+      <div class="form-row"><div class="form-label">Tarix</div><input type="date" class="form-input" id="f-date"></div>
+      <button class="btn-submit" onclick="addTransfer()">Əlavə Et</button>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div id="card-list"><div style="text-align:center;color:var(--muted);padding:24px;font-size:13px;">Hələ əməliyyat yoxdur</div></div>
+
+  <!-- LOG -->
+  <div class="sec-title" style="margin-top:20px;">Kredit / Borc Logu <span id="log-count" style="color:var(--muted);font-size:11px;margin-left:6px;"></span></div>
+  <div class="form-card" style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr>
+          <th style="text-align:left;padding:8px;">Tarix</th>
+          <th style="text-align:left;padding:8px;">Əməliyyat</th>
+          <th style="text-align:left;padding:8px;">Qeyd</th>
+          <th style="text-align:left;padding:8px;">Məbləğ</th>
+          <th style="text-align:left;padding:8px;width:110px;"></th>
+        </tr>
+      </thead>
+      <tbody id="log-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pay Modal -->
+<div class="modal-bg" id="payModal">
+  <div class="modal">
+    <h3 id="pm-title">Ödəniş</h3>
+    <p id="pm-desc">Ödəniş məbləğini daxil edin</p>
+    <input type="number" class="modal-input" id="pm-amount" placeholder="Məbləğ ₼" step="0.01">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closePayModal()">Ləğv et</button>
+      <button class="btn-ok" onclick="confirmPay()">OK</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<a class="home-fab" href="index.html" title="Ana səhifə"><span></span><span></span><span></span></a>
+
+<script>
+const STORAGE_KEY = 'transfers_offline_v1';
+const LOG_KEY     = 'borc_log_v1';
+let transfers = [];
+let transferLog = [];
+let curType = 'borc-aldim';
+let payTarget = null;
+let editTarget = null;
+
+const LABELS = {'borc-aldim':'Borc Aldım','borc-verdim':'Borc Verdim','qaytardim':'Qaytardım','mene-qaytardi':'Mənə Qaytardı'};
+// Gəlir transfer növləri (balans artır)
+const INCOME_TYPES = new Set(['borc-aldim','mene-qaytardi']);
+// Xərc transfer növləri (balans azalır)
+const EXPENSE_TYPES = new Set(['borc-verdim','qaytardim']);
+
+function fmt(n){return new Intl.NumberFormat('az-AZ',{minimumFractionDigits:0,maximumFractionDigits:2}).format(n)+' ₼';}
+
+// ── STATE (localStorage + IndexedDB) ──────────────────
+function loadData(){
+  try{ transfers = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }catch(e){ transfers=[]; }
+  try{ transferLog = JSON.parse(localStorage.getItem(LOG_KEY)||'[]'); }catch(e){ transferLog=[]; }
+
+  if(window.BudgetDB){
+    BudgetDB.openDB()
+      .then(()=>Promise.all([
+        BudgetDB.getSetting(STORAGE_KEY),
+        BudgetDB.getSetting(LOG_KEY)
+      ]))
+      .then(([trs,log])=>{
+        if(Array.isArray(trs)) transfers = trs;
+        if(Array.isArray(log)) transferLog = log;
+        renderAll();
+      })
+      .catch(console.error);
+  }
+  renderAll();
+}
+
+function saveData(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(transfers));
+  localStorage.setItem(LOG_KEY, JSON.stringify(transferLog));
+  if(window.BudgetDB){
+    try{
+      BudgetDB.setSetting(STORAGE_KEY, transfers);
+      BudgetDB.setSetting(LOG_KEY, transferLog);
+    }catch(e){ console.error(e); }
+  }
+}
+
+// ── LOG HELPERS (lokal) ──────────────────────────────
+function addLog(entry){
+  transferLog = transferLog || [];
+  transferLog.push(entry);
+  saveData();
+  renderLog();
+}
+function editLog(idx, updated){
+  if(transferLog[idx]){ transferLog[idx] = {...transferLog[idx], ...updated}; saveData(); renderLog(); }
+}
+function deleteLog(idx){
+  transferLog.splice(idx,1); saveData(); renderLog();
+}
+
+function setType(t){
+  curType = t;
+  ['borc-aldim','borc-verdim'].forEach(k=>{
+    document.getElementById('tb-'+k).className = 'type-btn' + (k===t?' sel-'+k:'');
+  });
+}
+
+function addTransfer(){
+  const amt  = parseFloat(document.getElementById('f-amount').value);
+  const note = document.getElementById('f-note').value.trim();
+  const date = document.getElementById('f-date').value;
+  if(!amt||amt<=0){ toast('Məbləğ daxil edin',true); return; }
+  if(!date){ toast('Tarix seçin',true); return; }
+
+  const tr = {
+    id: 'tr_'+Date.now(),
+    type: curType,
+    amount: amt,
+    paid: 0,
+    note: note,
+    date: date,
+    done: false,
+    payments: []
+  };
+  transfers.unshift(tr);
+  saveData();
+  // Log: alınan borc → Gəlir, verilən borc → Xərc
+  const logType = (curType==='borc-aldim') ? 'Gəlir' : 'Xərc';
+  addLog({ id:'log_'+Date.now(), date, type:logType, note: (LABELS[curType]||'') + (note?(' — '+note):''), amount: amt, transferId: tr.id });
+
+  renderAll();
+  document.getElementById('f-amount').value='';
+  document.getElementById('f-note').value='';
+  // formu bağla
+  document.getElementById('add-form-section').style.display='none';
+  document.getElementById('btn-add-toggle').textContent='+ Yeni Borc Əlavə Et';
+  document.getElementById('btn-add-toggle').style.background='var(--blue)';
+  toast('✓ Əlavə edildi', false);
+}
+
+let payId = null;
+function openPayModal(id){
+  const tr = transfers.find(t=>t.id===id);
+  if(!tr||tr.done) return;
+  payId = id;
+  if(tr.paid === undefined) tr.paid = 0;
+  if(!tr.payments) tr.payments = [];
+  const remaining = tr.amount - tr.paid;
+  document.getElementById('pm-title').textContent = LABELS[tr.type] + ' — Ödəniş';
+  document.getElementById('pm-desc').textContent = `Qalıq: ${fmt(remaining)}`;
+  document.getElementById('pm-amount').value = remaining.toFixed(2);
+  document.getElementById('payModal').classList.add('open');
+}
+function closePayModal(){
+  document.getElementById('payModal').classList.remove('open');
+  payId = null;
+}
+function confirmPay(){
+  if(!payId) return;
+  const tr = transfers.find(t=>t.id===payId);
+  if(!tr) return;
+  const payAmt = parseFloat(document.getElementById('pm-amount').value)||0;
+  if(!payAmt||payAmt<=0){ toast('Məbləğ daxil edin',true); return; }
+  const remaining = tr.amount - tr.paid;
+  const actual = Math.min(payAmt, remaining);
+
+  tr.paid = +(tr.paid + actual).toFixed(2);
+  tr.payments = tr.payments||[];
+  tr.payments.push({ date: new Date().toISOString().split('T')[0], amount: actual });
+
+  if(tr.paid >= tr.amount - 0.001){
+    tr.done = true;
+    tr.paid  = tr.amount;
+  }
+
+  // Ödəniş logu: borc-aldim qaytarma → Xərc, borc-verdim geri alma → Gəlir
+  const payType = INCOME_TYPES.has(tr.type) ? 'Xərc' : 'Gəlir';
+  addLog({
+    id:'log_'+Date.now(),
+    date: new Date().toISOString().split('T')[0],
+    type: payType,
+    note: (tr.type==='borc-aldim' ? 'Borc qaytardım' : 'Borc geri aldım') + (tr.note?(' — '+tr.note):''),
+    amount: actual,
+    transferId: tr.id,
+    pay:true
+  });
+
+  saveData();
+  closePayModal();
+  renderAll();
+  toast(tr.done ? '✓ Tam ödənildi, bağlandı' : `✓ ${fmt(actual)} ödənildi`, false);
+}
+
+function deleteTransfer(id){
+  if(!confirm('Bu əməliyyatı silmək istəyirsiniz?')) return;
+  transfers = transfers.filter(t=>t.id!==id);
+  saveData();
+  renderAll();
+  toast('Silindi', false);
+}
+
+function editTransfer(id){
+  const tr = transfers.find(t=>t.id===id);
+  if(!tr) return;
+  const type = prompt('Növ (borc-aldim / borc-verdim)', tr.type) || tr.type;
+  const amtStr = prompt('Məbləğ', tr.amount);
+  if(amtStr===null) return;
+  const amt = parseFloat(amtStr)||tr.amount;
+  const note = prompt('Qeyd', tr.note||'');
+  if(note===null) return;
+  const date = prompt('Tarix (YYYY-MM-DD)', tr.date||'');
+  if(date===null) return;
+  tr.type = (type==='borc-verdim'?'borc-verdim':'borc-aldim'); // yalnız iki əsas tip
+  tr.amount = amt;
+  if(tr.paid > tr.amount) tr.paid = tr.amount;
+  tr.note = note;
+  tr.date = date;
+  saveData();
+  renderAll();
+  toast('Yeniləndi', false);
+}
+
+function renderAll(){
+  // Summary
+  const tot = {'borc-aldim':0,'borc-verdim':0,'qaytardim':0,'mene-qaytardi':0};
+  const cnt = {'borc-aldim':0,'borc-verdim':0,'qaytardim':0,'mene-qaytardi':0};
+  transfers.filter(t=>!t.done).forEach(t=>{ if(tot[t.type]!==undefined) tot[t.type]+=t.amount; if(cnt[t.type]!==undefined) cnt[t.type]++; });
+
+  document.getElementById('sum-ba').textContent  = fmt(tot['borc-aldim']);
+  document.getElementById('sum-bv').textContent  = fmt(tot['borc-verdim']);
+  document.getElementById('cnt-ba').textContent  = cnt['borc-aldim']+' əməliyyat';
+  document.getElementById('cnt-bv').textContent  = cnt['borc-verdim']+' əməliyyat';
+
+  const net = tot['borc-aldim']+tot['mene-qaytardi']-tot['borc-verdim']-tot['qaytardim'];
+  const ne = document.getElementById('sum-net');
+  ne.textContent = (net>=0?'+':'')+fmt(net);
+  ne.style.color = net>=0?'var(--green)':'var(--red)';
+
+  // Cards — məbləğə görə böyükdən kiçiyə sırala
+  const active = [...transfers].sort((a,b) => (b.amount||0) - (a.amount||0));
+  const list = document.getElementById('card-list');
+
+  function buildCard(t, isArchived){
+    // borc-aldim (+yaşıl), mene-qaytardi (+yaşıl), borc-verdim (-qırmızı), qaytardim (-qırmızı)
+    const isPos = t.type === 'borc-aldim' || t.type === 'mene-qaytardi';
+    const pct = t.amount>0 ? Math.round(((t.paid||0)/t.amount)*100) : 0;
+    const remaining = +(t.amount - (t.paid||0)).toFixed(2);
+    const cardClass = isPos ? 'income-tr' : 'expense-tr';
+    const barClass  = t.done ? 'green' : (isPos ? 'amber' : 'blue');
+    const sign = isPos ? '+' : '−';
+    const archCls = isArchived ? ' archived-card' : '';
+    // Ödəniş düyməsi: borc-aldim üçün "Qaytardım" (qırmızı), borc-verdim üçün "Geri Aldım" (yaşıl)
+    const payBtnClass = t.type === 'borc-aldim' ? 'btn-pay btn-pay-red' : 'btn-pay btn-pay-green';
+    const payBtnLabel = t.type === 'borc-aldim' ? '↩ Qaytardım' : '↪ Geri Aldım';
+    return `<div class="tr-card ${cardClass}${archCls}" id="card-${t.id}">
+      <div class="tr-card-top">
+        <span class="tr-badge ${t.type}">${LABELS[t.type]||t.type}</span>
+        <div class="tr-info">
+          <div class="tr-name">${t.note||'—'}</div>
+          <div class="tr-meta">${t.date}</div>
+        </div>
+        <div class="tr-right">
+          <div class="tr-amt ${cardClass}">${sign}${fmt(t.amount)}</div>
+          ${(t.paid||0)>0?`<div class="tr-remaining">Qalıq: ${fmt(remaining)}</div>`:''}
+        </div>
+      </div>
+      ${t.amount>0?`<div class="tr-progress">
+        <div class="progress-bar"><div class="progress-fill ${barClass}" style="width:${pct}%"></div></div>
+        <div class="progress-label"><span>${pct}% ${t.done?'tamamlandı':'ödənilib'}</span><span>${fmt(t.paid||0)} / ${fmt(t.amount)}</span></div>
+      </div>`:''}
+      <div class="tr-actions">
+        ${t.done
+          ? `<span class="badge-done">✓ Tamamlandı</span>`
+          : `<button class="${payBtnClass}" onclick="openPayModal('${t.id}')">${payBtnLabel}</button>`}
+        <button class="btn-pay" style="padding:7px 10px;" onclick="editTransfer('${t.id}')">✎</button>
+        <button class="btn-del" onclick="deleteTransfer('${t.id}')">🗑</button>
+      </div>
+    </div>`;
+  }
+
+  if(!active.length){
+    list.innerHTML='<div style="text-align:center;color:var(--muted);padding:24px;font-size:13px;">Hələ aktiv əməliyyat yoxdur</div>';
+  } else {
+    list.innerHTML = active.map(t=>buildCard(t,false)).join('');
+  }
+
+  renderLog();
+}
+
+function toast(msg,isErr){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show'+(isErr?' err':'');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+// ── LOG RENDER ────────────────────────────────────────
+function renderLog(){
+  const tbody = document.getElementById('log-body');
+  if(!tbody) return;
+  const rows = (transferLog||[]).map((r,idx)=>({r,idx})).sort((a,b)=> (b.r.date||'').localeCompare(a.r.date||''));
+  const cntEl = document.getElementById('log-count');
+  if(cntEl) cntEl.textContent = `(${rows.length} sətr)`;
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="5" style="padding:8px;color:var(--muted);">Log boşdur</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(({r,idx})=>{
+    const isIncome = (r.type||'').toLowerCase().startsWith('g');
+    const color = isIncome ? 'var(--green)' : 'var(--red)';
+    return `<tr>
+      <td style="padding:8px;">${r.date||'—'}</td>
+      <td style="padding:8px;"><span style="padding:4px 8px;border-radius:10px;background:${color}20;color:${color};font-weight:700;font-size:11px;">${r.type||''}</span></td>
+      <td style="padding:8px;">${r.note||''}</td>
+      <td style="padding:8px;">${fmt(r.amount||0)}</td>
+      <td style="padding:8px;white-space:nowrap;">
+        <button class="btn-pay" style="border:none" onclick="editLogRow(${idx})">Edit</button>
+        <button class="btn-del" style="border:none" onclick="deleteLog(${idx})">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function editLogRow(idx){
+  const r = transferLog[idx]; if(!r) return;
+  const amt = prompt('Məbləğ', r.amount); if(amt===null) return;
+  const note = prompt('Qeyd', r.note||''); if(note===null) return;
+  const date = prompt('Tarix (YYYY-MM-DD)', r.date||''); if(date===null) return;
+  const type = prompt('Tip (Gəlir/Xərc)', r.type||''); if(type===null) return;
+  editLog(idx,{amount:parseFloat(amt)||0,note,date,type});
+}
+
+function toggleAddForm(){
+  const sec = document.getElementById('add-form-section');
+  const btn = document.getElementById('btn-add-toggle');
+  const open = sec.style.display === 'none';
+  sec.style.display = open ? 'block' : 'none';
+  btn.textContent = open ? '✕ Bağla' : '+ Yeni Borc Əlavə Et';
+  if(open){ btn.style.background='var(--muted)'; }
+  else { btn.style.background='var(--blue)'; }
+}
+function setTheme(mode){
+  document.documentElement.setAttribute('data-theme', mode);
+  localStorage.setItem('page_theme_transfer', mode);
+}
+
+function init(){
+  document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+  setType('borc-aldim');
+  loadData();
+  // Saxlanılmış temayı tətbiq et
+  const t = localStorage.getItem('page_theme_transfer') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+window.addEventListener('storage', e=>{ if(e.key===STORAGE_KEY || e.key===LOG_KEY) loadData(); });
+document.getElementById('payModal').addEventListener('click', e=>{ if(e.target===document.getElementById('payModal')) closePayModal(); });
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePayModal();}});
+</script>
+</body>
+</html>
