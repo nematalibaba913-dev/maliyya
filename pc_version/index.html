@@ -443,7 +443,13 @@ html,body{
         if(tp.includes('gəlir')||tp.includes('gelir')) income += amt;
         else expense += amt;
       });
-      // Borc xalis balansa aid deyil (Ümumi Öhdəlik-də ayrıca göstərilir)
+      // Borc logu sətirləri (xalis balansa daxildir)
+      brLog.forEach(function(t){
+        var amt = parseFloat(t.amount||t.Mebleg) || 0;
+        var tp = (t.type||t.Emeliyyat||'').toLowerCase();
+        if(tp.includes('gəlir')||tp.includes('gelir')) income += amt;
+        else expense += amt;
+      });
       // Legacy
       legacy.forEach(function(t){
         var amt = parseFloat(t.Mebleg) || 0;

@@ -200,7 +200,7 @@ async function snapshot(){
   const b = sumLog(cl, t=>parseFloat(t.amount||t.Mebleg)||0, t=>t.type||t.Emeliyyat);
   const c = sumLog(bl, t=>parseFloat(t.amount||t.Mebleg)||0, t=>t.type||t.Emeliyyat);
   const d = sumLog(lg, t=>parseFloat(t.Mebleg)||0, t=>t.Emeliyyat);
-  const balance = r2(ob + a.inc+b.inc+d.inc - (a.exp+b.exp+d.exp));   // borc xalis balansa aid deyil
+  const balance = r2(ob + a.inc+b.inc+c.inc+d.inc - (a.exp+b.exp+c.exp+d.exp));   // borc logu daxildir
   return { gx, cl, bl, lg, cr, tr, ob, balance };
 }
 

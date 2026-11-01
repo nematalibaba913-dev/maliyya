@@ -1110,10 +1110,8 @@ function renderKPI(){
   const exp = nonTr.filter(r=>r.type==='xerc' ).reduce((s,r)=>s+r.amount,0);
   // Borc əməliyyatları artıq Gəlir/Xərc kimi mf_transactions-dadır
   // mf_transfers-dan əlavə hesablama lazım deyil — ikiqat sayılma riski aradan qalxır
-  // Borc xalis balansa aid deyil: borc logu sətirləri çıxarılır
-  const brRows = nonTr.filter(r=>r.source==='borc_log');
-  const brLogNet = brRows.reduce((s,r)=>s+(r.type==='gelir'?r.amount:-r.amount),0);
-  const bal = openingBalance + inc - exp - brLogNet;
+  // Borc logu əməliyyatları xalis balansa daxildir (inc/exp-də artıq var)
+  const bal = openingBalance + inc - exp;
   const ic  = nonTr.filter(r=>r.type==='gelir').length;
   const ec  = nonTr.filter(r=>r.type==='xerc').length;
 
