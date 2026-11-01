@@ -504,7 +504,7 @@ function confirmPay(){
 
 function deletePayment(creditId, idx){
   const cr = credits.find(c=>c.id===creditId);
-  if(!cr||!confirm('Bu ödənişi silm?k ist?yirsiniz?')) return;
+  if(!cr||!confirm('Bu ödənişi silmək istəyirsiniz?')) return;
   cr.payments.splice(idx,1);
   saveState();
   renderAll();
@@ -590,7 +590,7 @@ function saveEdit(){
 // "?"? DELETE "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
 function deleteCredit(id){
   const cr = credits.find(c=>c.id===id);
-  if(!cr||!confirm(cr.name+' kreditini silm?k ist?yirsiniz?')) return;
+  if(!cr||!confirm(cr.name+' kreditini silmək istəyirsiniz?')) return;
   credits = credits.filter(c=>c.id!==id);
   // Log və ödənişlər toxunulmur (tarixçə qalsın)
   saveState(); renderAll();
@@ -741,6 +741,7 @@ function editLog(idx, updated){
   if(creditLog[idx]){ creditLog[idx] = {...creditLog[idx], ...updated}; saveState(); renderLog(); }
 }
 function deleteLog(idx){
+  if(!confirm('Bu qeydi silmək istəyirsiniz?')) return;
   creditLog.splice(idx,1); saveState(); renderLog();
 }
 function renderLog(){

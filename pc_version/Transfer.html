@@ -277,6 +277,7 @@ function editLog(idx, updated){
   if(transferLog[idx]){ transferLog[idx] = {...transferLog[idx], ...updated}; saveData(); renderLog(); }
 }
 function deleteLog(idx){
+  if(!confirm('Bu qeydi silmək istəyirsiniz?')) return;
   transferLog.splice(idx,1); saveData(); renderLog();
 }
 

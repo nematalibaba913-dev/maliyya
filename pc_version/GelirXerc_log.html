@@ -234,6 +234,7 @@
     }
 
     async function delRow(idx){
+      if(!confirm('Bu əməliyyatı silmək istəyirsiniz?')) return;
       ROWS.splice(idx,1);
       editIndex = -1;
       document.getElementById('edit-form').style.display='none';
