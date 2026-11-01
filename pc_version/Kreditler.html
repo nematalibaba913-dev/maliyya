@@ -182,7 +182,7 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min
     <div class="topbar-title">💳 Kreditlər</div>
     <div class="topbar-date" id="today-date"></div>
   </div>
-  <button class="btn-add-top" onclick="openAddModal()">+ Yeni Kredit</button>
+  <button class="btn-add-top" onclick="openAddModal()" title="Yeni kredit" aria-label="Yeni kredit" style="font-size:22px;line-height:1;font-weight:600;min-width:44px;">+</button>
 </div>
 
 <div class="content">
@@ -436,7 +436,7 @@ function renderCards(){
   
   activeEl.innerHTML = active.length
     ? active.map(buildCard).join('')
-    : '<div style="text-align:center;color:var(--muted);padding:32px;font-size:13px;">Aktiv kredit yoxdur. + Yeni Kredit düymTsini sıxın.</div>';
+    : '<div style="text-align:center;color:var(--muted);padding:32px;font-size:13px;">Aktiv kredit yoxdur. + düyməsini sıxın.</div>';
 
   renderLog();}
 
