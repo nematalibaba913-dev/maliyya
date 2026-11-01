@@ -5,8 +5,8 @@
  * Offline rejim: App shell həmişə açılır
  */
 
-const CACHE_NAME    = 'myfinance-v8';
-const CACHE_STATIC  = 'myfinance-static-v8';
+const CACHE_NAME    = 'myfinance-v9';
+const CACHE_STATIC  = 'myfinance-static-v9';
 
 // Əsas app shell — bunlar offline halda açılmalıdır
 const APP_SHELL = [

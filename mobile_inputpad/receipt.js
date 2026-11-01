@@ -62,29 +62,68 @@
     for (i = 0; i < folded.length; i++) {
       if (/(mehsul|mahsul)/.test(folded[i]) && /(say|qiymet|qiymat)/.test(folded[i])) { start = i; break; }
     }
+    if (start < 0) {                                   // başlıq sütunları ayrı sətirlərdə gələ bilər
+      for (i = 0; i < folded.length; i++) { if (/(mehsul|mahsul)\w*\s+ad/.test(folded[i])) { start = i; break; } }
+    }
     for (i = start + 1; i < folded.length; i++) {
       var tmatch = folded[i].match(/^\W*(?:c[ea]mi|cemi)\s+([\d.,]+)\s*$/);
+      if (!tmatch && /^\W*c[ea]mi\W*$/.test(folded[i]) && i + 1 < folded.length && /^\d[\d.,]*$/.test(folded[i + 1])) {
+        tmatch = [null, folded[i + 1]];
+      }
       if (tmatch) { out.total = money(tmatch[1]); end = i; break; }
     }
     if (start < 0) start = -1;
 
     var TAIL = /^(.*?)\s+(\d[\d.,]*)\s+(\d[\d.,]*)\s+(\d[\d.,]*)\s*$/;
-    var cur = null;
+    var NUMS = /(\d[\d.,]*)\s+(\d[\d.,]*)\s+(\d[\d.,]*)\s*$/;
+    var cur = null, closed = true, pending = [];
+    function mk(name, a1, a2, a3) {
+      var q = qty(a1), p = money(a2), t = money(a3);
+      if (isNaN(t) && !isNaN(q) && !isNaN(p)) t = r2(q * p);   // məbləğə (cəmi sütununa) üstünlük ver
+      return { name: String(name).replace(/\(\s*[^)]*\)\s*$/, '').trim(), qty: q, price: p, amount: isNaN(t) ? 0 : r2(t) };
+    }
     for (i = start + 1; i < end; i++) {
       var ln = lines[i];
+      var isVat = /%/.test(ln) || /dv/.test(folded[i]) || /^[*"'\u201c\u201d]/.test(ln);
+      if (isVat) {
+        // ƏDV sətri malı bağlayır; rəqəmlər bu sətirdə gəlibsə (ad əvvəlki sətirdə), malı indi yarat
+        var nm = ln.match(NUMS);
+        if (nm && pending.length && closed) {
+          cur = mk(pending.join(' '), nm[1], nm[2], nm[3]); out.items.push(cur); pending = [];
+        }
+        closed = true; continue;
+      }
       var tail = ln.match(TAIL);
       if (tail && tail[1].replace(/\(.*?\)/g, '').trim().length >= 2) {
-        var name = tail[1].replace(/\(\s*[^)]*\)\s*$/, '').trim();
-        var q = qty(tail[2]), p = money(tail[3]), t = money(tail[4]);
-        // Qiymət × say uyğunsuzluğu: məbləğə (cəmi sütununa) üstünlük ver
-        if (isNaN(t) && !isNaN(q) && !isNaN(p)) t = r2(q * p);
-        cur = { name: name, qty: q, price: p, amount: isNaN(t) ? 0 : r2(t) };
-        out.items.push(cur);
-      } else if (cur) {
-        // Davam sətri: adın qalan hissəsi (ƏDV sətirlərini keç)
-        if (/%/.test(ln) || /^[*"'“”]/.test(ln) || /dv/.test(folded[i])) continue;
-        var extra = ln.replace(/\s+\d{1,2}$/, '').trim();   // sondakı tək rəqəm (sütun qalığı)
+        cur = mk(((pending.length ? pending.join(' ') + ' ' : '') + tail[1]), tail[2], tail[3], tail[4]);
+        out.items.push(cur); pending = []; closed = false;
+      } else if (cur && !closed) {
+        var extra = ln.replace(/\s+\d{1,2}$/, '').trim();       // sondakı tək rəqəm (sütun qalığı)
         if (extra) cur.name = (cur.name + ' ' + extra).trim();
+      } else {
+        pending.push(ln);
+      }
+    }
+
+    // Ehtiyat: hər xana ayrı sətirdə gəlibsə (səhifədən kopyalama) — xana-xana oxu
+    if (!out.items.length) {
+      var cells = [];
+      for (i = start + 1; i < end; i++) lines[i].split(/\t+/).forEach(function (c) { c = c.trim(); if (c) cells.push(c); });
+      var isNum = function (c) { return /^\d[\d.,]*$/.test(c); };
+      var nameParts = [];
+      for (i = 0; i < cells.length; i++) {
+        var c = cells[i], fc = fold(c);
+        if (isNum(c) && i + 2 < cells.length && isNum(cells[i + 1]) && isNum(cells[i + 2]) && nameParts.length) {
+          var q2 = qty(c), p2 = money(cells[i + 1]), t2 = money(cells[i + 2]);
+          if (isNaN(t2) && !isNaN(q2) && !isNaN(p2)) t2 = r2(q2 * p2);
+          out.items.push({ name: nameParts.join(' '), qty: q2, price: p2, amount: isNaN(t2) ? 0 : r2(t2) });
+          nameParts = []; i += 2; continue;
+        }
+        if (isNum(c)) continue;                                   // tək rəqəm: sütun qalığı
+        if (/^(say|qiymet|qiymat|c[ea]mi|mehsulun ad\w*)$/.test(fc)) continue;   // başlıq xanaları
+        if (/^\(.*\)$/.test(c) || /^(kg|edad|ed|qr|l|ml|m|metr)$/.test(fc)) continue;   // ölçü vahidi
+        if (/%/.test(c) || /^[*"'“”]/.test(c) || /dv/.test(fc)) continue;                 // ƏDV sətri
+        nameParts.push(c);
       }
     }
 
@@ -108,7 +147,7 @@
     'Yol': ['benzin', 'dizel', 'yanacaq', 'ai-9', 'a-95', 'a95', 'a92', 'bilet', 'taksi', 'metro', 'avtobus', 'bakikart'],
     'Restoran': ['pizza', 'burger', 'shaurma', 'doner', 'lahmacun', 'kafe', 'restoran', 'sandvic', 'latte', 'cappuccino', 'espresso'],
     'Heyvan məhsulları': ['whiskas', 'pedigree', 'felix', 'kitekat', 'pisik', 'it yemi', 'heyvan'],
-    'Ərzaq': ['baliq', 'skumbriya', 'kilka', 'qizilbaliq', 'tuna', 'sazan', 'corek', 'lavas', 'batan', 'bulka', 'sud', 'sut', 'kefir', 'qaymaq', 'yag', 'yumurta', 'toyuq', 'et ', 'mal ', 'qoyun', 'kolbasa', 'sosiska', 'sosis', 'pendir', 'kere', 'duz', 'seker', 'un ', 'makaron', 'duyu', 'noxud', 'lobya', 'meyve', 'alma', 'armud', 'banan', 'pomidor', 'xiyar', 'kartof', 'sogan', 'sarimsaq', 'limon', 'portagal', 'mandarin', 'cay', 'kofe', 'qehve', 'bal ', 'murebbe', 'konfet', 'sokolad', 'biskvit', 'pecenye', 'su ', 'sire', 'kompot', 'ayran', 'yogurt', 'yoqurt', 'dondurma', 'konserv', 'ketchup', 'mayonez', 'sous', 'badam', 'findiq', 'cips', 'qoz', 'kismis', 'zeytun', 'yarma', 'ovsyanka', 'qida', 'ersaq', 'meyve', 'terevez', 'pomidor', 'bibar', 'kelem', 'kok']
+    'Ərzaq': ['baliq', 'skumbriya', 'kilka', 'qizilbaliq', 'tuna', 'sazan', 'corek', 'lavas', 'batan', 'bulka', 'sud', 'sut', 'kefir', 'qaymaq', 'yag', 'yumurta', 'toyuq', 'et ', 'qoyun', 'kolbasa', 'sosiska', 'sosis', 'pendir', 'kere', 'duz', 'seker', 'un ', 'makaron', 'duyu', 'noxud', 'lobya', 'meyve', 'alma', 'armud', 'banan', 'pomidor', 'xiyar', 'kartof', 'sogan', 'sarimsaq', 'limon', 'portagal', 'mandarin', 'cay', 'kofe', 'qehve', 'bal ', 'murebbe', 'konfet', 'sokolad', 'biskvit', 'pecenye', 'su ', 'sire', 'kompot', 'ayran', 'yogurt', 'yoqurt', 'dondurma', 'konserv', 'ketchup', 'mayonez', 'sous', 'badam', 'findiq', 'cips', 'qoz', 'kismis', 'zeytun', 'yarma', 'ovsyanka', 'qida', 'ersaq', 'meyve', 'terevez', 'pomidor', 'bibar', 'kelem', 'kok']
   };
 
   function normName(s) { return fold(s).replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
@@ -259,14 +298,42 @@
   function open() { build(); showPicker(); el.ov.classList.add('show'); }
   function close() { el.ov.classList.remove('show'); }
 
-  function showPicker(msg) {
+  var SITE = 'https://nematalibaba913-dev.github.io/maliyya/mobile_inputpad/InputPad.html';
+  function bookmarkletCode() {
+    return "javascript:(function(){var t=document.body.innerText||'';var m=t.search(/Obyektin/i);if(m>0)t=t.slice(m);t=t.slice(0,6000);" +
+      "location.href='" + SITE + "#cek='+encodeURIComponent(btoa(unescape(encodeURIComponent(t))));})();";
+  }
+
+  function showPicker(msg, lastText) {
     el.foot.style.display = 'none';
     el.body.innerHTML =
-      '<button class="ck-big" type="button" id="ck-pick">📷 Çekin şəklini seç və ya çək</button>' +
-      '<div class="ck-hint">e-kassa saytından "Çeki yüklə" ilə endirdiyiniz şəkli və ya kağız çekin fotosunu seçin. ' +
-      'Şəkil yalnız bu cihazda oxunur, heç yerə göndərilmir. Mallar ayrı sətir kimi çıxacaq, göndərməzdən əvvəl yoxlaya və düzəldə bilərsiniz.</div>' +
-      (msg ? '<div class="ck-warn">' + esc(msg) + '</div>' : '');
+      (msg ? '<div class="ck-warn">' + esc(msg) + '</div>' : '') +
+      '<div class="ck-hint" style="margin-top:4px"><b>Ən sürətli yol:</b> çekin QR-nı oxudun, səhifə açıldı → brauzerdə "Çek → InputPad" əlfəcinini basın (aşağıda quraşdırma). Mətn birbaşa gəlir, xəta olmur.</div>' +
+      '<textarea id="ck-paste" placeholder="Və ya çek səhifəsindən kopyaladığınız mətni bura yapışdırın" style="width:100%;height:110px;background:#1c1c1c;color:#fff;border:none;border-radius:14px;padding:12px;font-size:13px;outline:none;resize:none">' + esc(lastText || '') + '</textarea>' +
+      '<button class="ck-big" type="button" id="ck-read" style="padding:14px;margin-top:8px">Mətni oxu</button>' +
+      '<button class="ck-big" type="button" id="ck-pick" style="padding:12px;margin-top:8px;font-size:14px;color:#aaa">📷 Şəkildən oxu (daha az dəqiq)</button>' +
+      '<details style="margin-top:14px"><summary style="color:#bbb;font-size:14px;cursor:pointer">Əlfəcin quraşdırma (bir dəfə)</summary>' +
+      '<div class="ck-hint">1) Aşağıdakı düyməni basıb kodu kopyalayın.<br>2) Telefon brauzerində istənilən səhifəni əlfəcinə əlavə edin (☆), sonra əlfəcini redaktə edib adını <b>Çek → InputPad</b> yazın, ünvan (URL) sahəsinə kodu yapışdırın.<br>3) Çek səhifəsi açıq olanda əlfəcini basın (Chrome-da ünvan sətrinə adını yazıb seçmək də olar).</div>' +
+      '<button class="ck-big" type="button" id="ck-copy" style="padding:12px;margin-top:0;font-size:14px">Kodu kopyala</button></details>';
     el.body.querySelector('#ck-pick').addEventListener('click', function () { el.file.click(); });
+    el.body.querySelector('#ck-read').addEventListener('click', function () {
+      processText(el.body.querySelector('#ck-paste').value);
+    });
+    el.body.querySelector('#ck-copy').addEventListener('click', function () {
+      var code = bookmarkletCode(), b = this;
+      var done = function () { b.textContent = 'Kopyalandı ✓'; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(done, function () { window.prompt('Kodu kopyalayın:', code); });
+      else window.prompt('Kodu kopyalayın:', code);
+    });
+  }
+
+  function processText(text) {
+    var parsed = parseReceipt(text);
+    if (!parsed.items.length) {
+      showPicker('Mətndən mal sətirləri oxunmadı. Mətn çekin "Məhsulun adı … Cəmi" hissəsini ehtiva etməlidir.', text);
+      return;
+    }
+    showReview(parsed);
   }
 
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -281,9 +348,7 @@
           .then(function (w) { prog.textContent = 'Oxunur…'; return w.recognize(canvas); });
       })
       .then(function (r) {
-        var parsed = parseReceipt(r.data.text);
-        if (!parsed.items.length) { showPicker('Çekdən mal sətirləri oxunmadı. Şəkil aydın və çekin "Məhsulun adı … Cəmi" hissəsi görünən olmalıdır.'); return; }
-        showReview(parsed);
+        processText(r.data.text);
       })
       .catch(function (e) {
         console.warn('[Çek]', e);
@@ -389,6 +454,17 @@
     });
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build);
-  else build();
+  function fromHash() {
+    var h = location.hash || '';
+    if (h.indexOf('#cek=') !== 0) return;
+    var text = '';
+    try { text = decodeURIComponent(escape(atob(decodeURIComponent(h.slice(5))))); } catch (e) { text = ''; }
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+    open();
+    if (text) processText(text); else showPicker('Çek mətni oxunmadı. Yenidən cəhd edin.');
+  }
+
+  function start() { build(); fromHash(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
 })(typeof window !== 'undefined' ? window : this);
