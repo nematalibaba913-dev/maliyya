@@ -84,3 +84,4 @@ create policy "app_kv_own" on public.app_kv
   with check (user_id = auth.uid());
 
 revoke all on public.app_kv from anon;
+grant select, insert, update, delete on public.app_kv to authenticated;
