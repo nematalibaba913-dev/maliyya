@@ -518,32 +518,8 @@ body.dark .cat-dropdown-list{background:var(--surface);border-color:var(--border
     <!-- MASTER GRID: filtr + kpi + kredit kartı -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto;gap:12px;margin-bottom:12px;align-items:stretch;">
 
-      <!-- Əməliyyat növü + Kateqoriya — sıra 1, sütun 1-2 -->
-      <div style="grid-column:1/3;grid-row:1;">
-        <div class="filter-section" style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start;margin-bottom:0;">
-          <div style="flex:0 0 auto;">
-            <div class="slicer-label">Əməliyyat növü</div>
-            <div style="display:flex;gap:6px;">
-              <button class="sl-btn active" id="type-all"   onclick="setType('all')">Hamısı</button>
-              <button class="sl-btn" id="type-gelir" onclick="setType('gelir')">💚 Gəlir</button>
-              <button class="sl-btn" id="type-xerc"  onclick="setType('xerc')">❤️ Xərc</button>
-            </div>
-          </div>
-          <div style="flex:1;min-width:160px;">
-            <div class="slicer-label">Kateqoriya</div>
-            <div class="cat-dropdown-wrap" id="cat-dropdown-wrap">
-              <button class="cat-dropdown-btn" id="cat-dropdown-btn" onclick="toggleCatDropdown()">
-                <span id="cat-dropdown-label">Hamısı</span>
-                <span class="cat-dropdown-arrow">▾</span>
-              </button>
-              <div class="cat-dropdown-list" id="cat-dropdown-list"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Kredit kartı — sıra 1-2, sütun 3 -->
-      <div style="grid-column:3;grid-row:1/3;display:flex;align-items:stretch;">
+      <div style="grid-column:3;grid-row:1;display:flex;align-items:stretch;">
         <div class="kpi blue" id="kpi-bal" style="width:100%;display:flex;flex-direction:column;">
           <!-- Yuxarı: başlıq sol, boş sağ -->
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -571,14 +547,14 @@ body.dark .cat-dropdown-list{background:var(--surface);border-color:var(--border
       </div>
 
       <!-- Ümumi Gəlir -->
-      <div class="kpi green kpi-gelir-card" style="grid-column:1;grid-row:2;padding:12px 16px;">
+      <div class="kpi green kpi-gelir-card" style="grid-column:1;grid-row:1;padding:12px 16px;">
         <div class="kpi-top" style="margin-bottom:6px;"><span class="kpi-label">Ümumi Gəlir</span><div class="kpi-ico">▲</div></div>
         <div class="kpi-val" id="k-income" style="font-size:20px;">—</div>
         <div class="kpi-sub" id="k-income-c">—</div>
       </div>
 
       <!-- Ümumi Xərc -->
-      <div class="kpi red kpi-xerc-card" style="grid-column:2;grid-row:2;padding:12px 16px;">
+      <div class="kpi red kpi-xerc-card" style="grid-column:2;grid-row:1;padding:12px 16px;">
         <div class="kpi-top" style="margin-bottom:6px;"><span class="kpi-label">Ümumi Xərc</span><div class="kpi-ico">▼</div></div>
         <div class="kpi-val" id="k-expense" style="font-size:20px;">—</div>
         <div class="kpi-sub" id="k-expense-c">—</div>
@@ -657,6 +633,16 @@ body.dark .cat-dropdown-list{background:var(--surface);border-color:var(--border
       <div class="card">
         <div class="card-title">Xərc Kateqoriyaları</div>
         <div class="card-sub">Paylanma faizi</div>
+        <div style="margin:10px 0 4px;">
+          <div class="slicer-label">Kateqoriya</div>
+          <div class="cat-dropdown-wrap" id="cat-dropdown-wrap" style="min-width:0;max-width:none;width:100%;">
+            <button class="cat-dropdown-btn" id="cat-dropdown-btn" onclick="toggleCatDropdown()" style="width:100%;">
+              <span id="cat-dropdown-label">Hamısı</span>
+              <span class="cat-dropdown-arrow">▾</span>
+            </button>
+            <div class="cat-dropdown-list" id="cat-dropdown-list"></div>
+          </div>
+        </div>
         <div class="chart-wrap"><canvas id="ch-donut"></canvas></div>
       </div>
       <div class="card">
@@ -1163,14 +1149,14 @@ function renderKPI(){
     // Proqnoz gələcək üçündür: keçmiş aylar nəzərə alınmır
     const _d0 = new Date(); const curKey = _d0.getFullYear() + '-' + String(_d0.getMonth()+1).padStart(2,'0');
     const isFut = k => !!k && k >= curKey;
-    const _bd = budgetData; budgetData = _bd.filter(i => isFut(i.monthYear || String(i.date||'').slice(0,7)));
+    const _bd = budgetData; budgetData = _bd.filter(i => { const mk = i.monthYear || String(i.date||'').slice(0,7); return isFut(mk) && (selMonths.size === 0 || selMonths.has(mk)); });
     let allMonths = new Set();
     budgetData.forEach(i => i.monthYear && allMonths.add(i.monthYear));
     recurringData.forEach(rec => { if(rec.targetMonths) rec.targetMonths.forEach(m => allMonths.add(m)); });
     // Kreditlərin aylıq ödənişləri (cari il) — Proqnoz səhifəsi ilə eyni
-    const crPlan = (window.MFCreditPlan ? MFCreditPlan.items(new Date().getFullYear()) : []).filter(c => isFut(c.monthKey));
+    const crPlan = (window.MFCreditPlan ? MFCreditPlan.items(new Date().getFullYear()) : []).filter(c => isFut(c.monthKey) && (selMonths.size === 0 || selMonths.has(c.monthKey)));
     crPlan.forEach(c => allMonths.add(c.monthKey));
-    const months = Array.from(allMonths).filter(isFut).sort();
+    const months = Array.from(allMonths).filter(isFut).filter(m => selMonths.size === 0 || selMonths.has(m)).sort();
 
     if(months.length){
       let fInc = 0, fExp = 0;
@@ -1235,6 +1221,10 @@ function renderKPI(){
       if(feEl)  feEl.textContent  = fmt(fExp);
       if(fimEl) fimEl.textContent = toLabel(lastIncDate);
       if(femEl) femEl.textContent = toLabel(lastExpDate);
+    } else {
+      // Seçilmiş aylarda proqnoz yoxdur
+      ['k-forecast-inc','k-forecast-exp'].forEach(id=>{ const e=document.getElementById(id); if(e) e.textContent = fmt(0); });
+      ['k-forecast-inc-m','k-forecast-exp-m'].forEach(id=>{ const e=document.getElementById(id); if(e) e.textContent = '—'; });
     }
   }catch(e){}
 
