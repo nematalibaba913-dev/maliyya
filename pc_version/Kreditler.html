@@ -30,7 +30,7 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min
 /* CONTENT */
 .content{max-width:1400px;margin:0 auto;padding:16px 24px;}
 /* SUMMARY CARDS */
-.sum-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;}
+.sum-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
 .sum-hero{margin-bottom:10px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
 .sum-hero .sum-label{font-size:12px;margin-bottom:10px;}
 .sum-hero .sum-val{font-size:34px;margin-bottom:0;}
@@ -127,6 +127,28 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min
 .chart-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;}
 .chart-title{font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text);}
 .chart-wrap{position:relative;height:220px;}
+.chart-sub{font-size:12px;color:var(--muted);margin:-8px 0 12px;}
+.an-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
+@media(max-width:900px){.an-kpis{grid-template-columns:1fr 1fr;}}
+.an-kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;}
+.an-kpi .k-l{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;}
+.an-kpi .k-v{font-size:22px;font-weight:700;font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:4px;}
+.an-kpi .k-s{font-size:11px;color:var(--muted);}
+.an-insights{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
+@media(max-width:700px){.an-insights{grid-template-columns:1fr;}}
+.an-ins{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.45;}
+.an-ins b{font-weight:700;}
+.an-two{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:900px){.an-two{grid-template-columns:1fr;}}
+.an-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:720px;}
+.an-tbl th{text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap;}
+.an-tbl td{text-align:right;padding:10px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;white-space:nowrap;}
+.an-tbl th:first-child,.an-tbl td:first-child{text-align:left;font-family:'Manrope',sans-serif;font-weight:600;}
+.an-tbl tfoot td{font-weight:700;border-bottom:none;border-top:2px solid var(--border);}
+.an-dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:7px;}
+.an-tag{display:inline-block;font-family:'Manrope',sans-serif;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;margin-left:6px;background:rgba(239,68,68,.12);color:var(--red);}
+.an-tag.g{background:rgba(16,185,129,.14);color:var(--green);}
+
 /* TOAST */
 .toast{position:fixed;bottom:24px;right:20px;z-index:999;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 18px;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.2);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
 .toast.show{transform:translateY(0);opacity:1;}
@@ -155,13 +177,13 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min
 
 <div class="content">
 
-  <!-- SUMMARY — Qalıq Borc ayrıca üstdə, aşağıda 5 kart -->
+  <!-- SUMMARY — Qalıq Borc və Aylıq Ödənişlər Cəmi ayrıca üstdə, aşağıda 4 kart -->
   <div class="sum-card red sum-hero"><div><div class="sum-label">Qalıq Borc</div><div class="sum-val" id="s-remain">—</div></div><div class="sum-sub" id="s-remain-sub">—</div></div>
+  <div class="sum-card amber sum-hero"><div><div class="sum-label">Aylıq Ödənişlər Cəmi</div><div class="sum-val" id="s-monthly">—</div></div><div class="sum-sub" id="s-monthly-sub">aktiv kreditlər</div></div>
   <div class="sum-grid" id="sum-grid">
     <div class="sum-card green"><div class="sum-label">Ödənilmiş Borc</div><div class="sum-val" id="s-paid">—</div><div class="sum-sub" id="s-paid-sub">—</div></div>
     <div class="sum-card blue"><div class="sum-label">Ümumi Alınan</div><div class="sum-val" id="s-taken">—</div><div class="sum-sub" id="s-taken-sub">—</div></div>
     <div class="sum-card amber"><div class="sum-label">Ümumi Öhdəlik</div><div class="sum-val" id="s-total">—</div><div class="sum-sub" id="s-total-sub">—</div></div>
-    <div class="sum-card amber"><div class="sum-label">Aylıq Ödənişlər Cəmi</div><div class="sum-val" id="s-monthly">—</div><div class="sum-sub" id="s-monthly-sub">aktiv kreditlər</div></div>
     <div class="sum-card red"><div class="sum-label">Bu Günə Borc Qalığı</div><div class="sum-val" id="s-today">—</div><div class="sum-sub" id="s-today-sub">—</div></div>
   </div>
 
@@ -174,19 +196,33 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min
   <!-- CARDS — 3 sütun -->
   <div id="cards-active" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start;"></div>
 
-  <!-- CHARTS -->
+  <!-- TƏHLİL -->
   <div id="section-charts" style="display:none;">
+    <div class="an-kpis" id="an-kpis"></div>
+    <div class="an-insights" id="an-insights"></div>
+
     <div class="chart-section">
-      <div class="chart-title">Aylıq Ödəniş Yükü (₼)</div>
-      <div class="chart-wrap"><canvas id="ch-monthly"></canvas></div>
+      <div class="chart-title">Hər kredit üzrə irəliləyiş</div>
+      <div class="chart-sub">Tünd hissə ödənilib, açıq hissə qalıb</div>
+      <div class="chart-wrap" id="an-prog-wrap"><canvas id="ch-prog"></canvas></div>
     </div>
-    <div class="chart-section">
-      <div class="chart-title">Borc Azalması Dinamikası</div>
-      <div class="chart-wrap"><canvas id="ch-progress"></canvas></div>
+
+    <div class="an-two">
+      <div class="chart-section">
+        <div class="chart-title">Gələcək aylıq ödəniş yükü</div>
+        <div class="chart-sub">Hər ay nə qədər ödəyəcəksiniz, kredit bitdikcə yük azalır</div>
+        <div class="chart-wrap" style="height:260px"><canvas id="ch-load"></canvas></div>
+      </div>
+      <div class="chart-section">
+        <div class="chart-title">Qalıq borcun azalması</div>
+        <div class="chart-sub">Faiz daxil qalan ödənişlər (proqnoz)</div>
+        <div class="chart-wrap" style="height:260px"><canvas id="ch-remain"></canvas></div>
+      </div>
     </div>
+
     <div class="chart-section">
-      <div class="chart-title">Ödəniş Strukturu</div>
-      <div class="chart-wrap" style="height:200px;"><canvas id="ch-donut"></canvas></div>
+      <div class="chart-title">Kreditlərin müqayisəsi</div>
+      <div id="an-table" style="overflow-x:auto"></div>
     </div>
   </div>
 
@@ -606,112 +642,187 @@ function deleteCredit(id){
   toast('Kredit silindi','ok');
 }
 // "?"? CHARTS "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
+function cssVar(n){ return getComputedStyle(document.body).getPropertyValue(n).trim(); }
+const AZ_MON = ['Yan','Fev','Mar','Apr','May','İyn','İyl','Avq','Sen','Okt','Noy','Dek'];
+function monLabel(d){ return AZ_MON[d.getMonth()] + ' ' + String(d.getFullYear()).slice(2); }
+function monthAdd(d,k){ return new Date(d.getFullYear(), d.getMonth()+k, 1); }
+function hexA(hex,a){
+  const h = String(hex||'#3b82f6').replace('#','');
+  const n = parseInt(h.length===3 ? h.split('').map(c=>c+c).join('') : h, 16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+// Kreditin gələcək ödəniş cədvəli: [{d:ayın 1-i, pay}]
+function futureSchedule(cr){
+  const cv = calc(cr), out = [];
+  let rem = cv.remainAmt;
+  if(!(cr.monthly>0) || rem < 0.01) return out;
+  const now = new Date(); const cur = new Date(now.getFullYear(), now.getMonth(), 1);
+  let first = new Date(cv.nextPayDate.getFullYear(), cv.nextPayDate.getMonth(), 1);
+  if(first < cur) first = cur;                         // gecikmiş ödənişlər cari aya yığılır
+  for(let k=0; rem > 0.01 && k < 600; k++){
+    const pay = Math.min(cr.monthly, rem);
+    out.push({ d: monthAdd(first,k), pay });
+    rem -= pay;
+  }
+  return out;
+}
+
 function renderCharts(){
-  const active = credits.filter(cr=>!cr.hidden);
-  if(!active.length) return;
-
-  // 1. Aylıq ödəniş yükü
-  const labels = active.map(cr=>cr.name);
-  const monthlyData = active.map(cr=>cr.monthly);
-  const colors = active.map(cr=>cr.color||'#3b82f6');
-
-  destroyChart('ch-monthly');
-  CHARTS['ch-monthly'] = new Chart(document.getElementById('ch-monthly'),{
-    type:'bar',
-    data:{labels,datasets:[{label:'Aylıq (₼)',data:monthlyData,backgroundColor:colors.map(c=>c+'99'),borderColor:colors,borderWidth:1.5,borderRadius:6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'var(--muted)'},grid:{display:false}},y:{ticks:{color:'var(--muted)'},grid:{color:'rgba(128,128,128,.1)'}}}}
+  const list = credits.filter(cr=>!cr.hidden);
+  const ink = cssVar('--text'), muted = cssVar('--muted'), grid = hexA(muted.startsWith('#')?muted:'#888888', .15), surf = cssVar('--surface');
+  const blue = cssVar('--blue') || '#3b82f6';
+  if(!list.length){
+    ['an-kpis','an-insights','an-table'].forEach(id=>{ const e=document.getElementById(id); if(e) e.innerHTML=''; });
+    ['ch-prog','ch-load','ch-remain'].forEach(destroyChart);
+    return;
+  }
+  const rows = list.map(cr=>{
+    const cv = calc(cr), sch = futureSchedule(cr);
+    const pb = cv.isDone ? 0 : principalBalance(cr);
+    return { cr, cv, sch, pb,
+      interestTotal: Math.max(0, (cr.totalPayable||0) - (cr.taken||0)),
+      interestLeft: Math.max(0, cv.remainAmt - pb),
+      end: sch.length ? sch[sch.length-1].d : null };
   });
+  const activeRows = rows.filter(r=>!r.cv.isDone);
 
-  // 2. Borc azalması
-  destroyChart('ch-progress');
-  const progressDatasets = active.map(cr=>{
-    const points = [];
-    let remaining = cr.totalPayable;
-    points.push(remaining);
-    const sorted = [...(cr.payments||[])].sort((a,b)=>a.date.localeCompare(b.date));
-    sorted.forEach(p=>{ remaining=Math.max(0,remaining-p.amount); points.push(remaining); });
-    // Fill to term length
-    while(points.length <= cr.termMonths) points.push(remaining);
-    return {label:cr.name, data:points.slice(0,cr.termMonths+1), borderColor:cr.color, backgroundColor:'transparent', borderWidth:2, tension:.4, pointRadius:0};
-  });
-  const maxMonths = Math.max(...active.map(cr=>cr.termMonths));
-  const progLabels = Array.from({length:maxMonths+1},(_,i)=>i===0?'Başlanğıc':i+'. ay');
-  CHARTS['ch-progress'] = new Chart(document.getElementById('ch-progress'),{
-    type:'line',
-    data:{labels:progLabels,datasets:progressDatasets},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'var(--muted)',font:{size:11}}}},scales:{x:{ticks:{color:'var(--muted)',maxTicksLimit:12},grid:{display:false}},y:{ticks:{color:'var(--muted)',callback:v=>Math.round(v)+'₼'},grid:{color:'rgba(128,128,128,.1)'}}}}
-  });
+  // ── KPI ──
+  const totPayable = rows.reduce((a,r)=>a+(r.cr.totalPayable||0),0);
+  const totPaid    = rows.reduce((a,r)=>a+r.cv.paidAmt,0);
+  const totTaken   = rows.reduce((a,r)=>a+(r.cr.taken||0),0);
+  const totInt     = rows.reduce((a,r)=>a+r.interestTotal,0);
+  const totIntLeft = activeRows.reduce((a,r)=>a+r.interestLeft,0);
+  const lastEnd    = activeRows.map(r=>r.end).filter(Boolean).sort((a,b)=>a-b).pop();
+  const nowM = new Date(); nowM.setDate(1); nowM.setHours(0,0,0,0);
+  const monthsLeft = lastEnd ? Math.max(0, (lastEnd.getFullYear()-nowM.getFullYear())*12 + lastEnd.getMonth()-nowM.getMonth() + 1) : 0;
+  const pctAll = totPayable>0 ? Math.round(totPaid/totPayable*100) : 0;
+  const kpi = (l,v,sub,color)=>`<div class="an-kpi"><div class="k-l">${l}</div><div class="k-v" style="color:${color||'var(--text)'}">${v}</div><div class="k-s">${sub}</div></div>`;
+  document.getElementById('an-kpis').innerHTML =
+    kpi('Ümumi irəliləyiş', pctAll+'%', fmt(totPaid)+' / '+fmt(totPayable), 'var(--green)') +
+    kpi('Ümumi faiz xərci', fmt(totInt), totTaken>0 ? 'alınan məbləğin '+Math.round(totInt/totTaken*100)+'%-i' : '—', 'var(--amber)') +
+    kpi('Qalan faiz hissəsi', fmt(totIntLeft), 'hələ ödəniləcək faiz', 'var(--red)') +
+    kpi('Borcsuz olma', lastEnd ? monLabel(lastEnd) : '—', lastEnd ? (monthsLeft+' ay qalıb') : 'aktiv kredit yoxdur', 'var(--blue)');
 
-  // 3. Pie chart: ödənilmiş vs qalıq ⇄ xarici etiketlər + faizlTr
-  destroyChart('ch-donut');
-  let totalPaid=0, totalRemain=0;
-  active.forEach(cr=>{ const cv=calc(cr); totalPaid+=cv.paidAmt; totalRemain+=cv.remainAmt; });
-  const totalAll = totalPaid + totalRemain;
-  const paidPct  = totalAll > 0 ? Math.round((totalPaid/totalAll)*100) : 0;
-  const remainPct= 100 - paidPct;
-
-  // External label plugin
-  const pieLabelsPlugin = {
-    id: 'pieLabels',
-    afterDatasetsDraw(chart){
-      const {ctx, data, chartArea:{left,right,top,bottom,width,height}} = chart;
-      const cx = left + width/2, cy = top + height/2;
-      const meta = chart.getDatasetMeta(0);
-      ctx.save();
-      meta.data.forEach((arc, i)=>{
-        const angle = (arc.startAngle + arc.endAngle) / 2;
-        const r = arc.outerRadius;
-        // Label line endpoint
-        const lx = cx + Math.cos(angle) * (r + 18);
-        const ly = cy + Math.sin(angle) * (r + 18);
-        // Text endpoint
-        const tx = cx + Math.cos(angle) * (r + 32);
-        const ty = cy + Math.sin(angle) * (r + 32);
-        // Line
-        ctx.beginPath();
-        ctx.moveTo(cx + Math.cos(angle)*r, cy + Math.sin(angle)*r);
-        ctx.lineTo(lx, ly);
-        ctx.lineTo(tx, ty);
-        ctx.strokeStyle = i===0 ? '#10b981' : '#ef4444';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        // Text
-        const pct = i===0 ? paidPct : remainPct;
-        const lbl = (i===0 ? 'Ödənilmiş' : 'Qalıq') + ' ' + pct + '%';
-        ctx.fillStyle = i===0 ? '#10b981' : '#ef4444';
-        ctx.font = 'bold 11px Inter,sans-serif';
-        ctx.textAlign = Math.cos(angle) > 0 ? 'left' : 'right';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(lbl, tx + (Math.cos(angle)>0?4:-4), ty);
-      });
-      ctx.restore();
+  // ── Qısa nəticələr ──
+  const ins = [];
+  if(activeRows.length){
+    const hi = [...activeRows].sort((a,b)=>(b.cr.rate||0)-(a.cr.rate||0))[0];
+    if((hi.cr.rate||0) > 0) ins.push(`Ən yüksək faizli kredit: <b>${hi.cr.name}</b> (${hi.cr.rate}%).`);
+    const soon = [...activeRows].filter(r=>r.end).sort((a,b)=>a.end-b.end)[0];
+    if(soon) ins.push(`Ən tez bitən kredit: <b>${soon.cr.name}</b> (${monLabel(soon.end)}).`);
+    // ən yüklü ay
+    const byMonth = {};
+    activeRows.forEach(r=>r.sch.forEach(x=>{ const k=x.d.getTime(); byMonth[k]=(byMonth[k]||0)+x.pay; }));
+    const keys = Object.keys(byMonth).map(Number).sort((a,b)=>a-b);
+    if(keys.length){
+      const peak = keys.reduce((m,k)=> byMonth[k]>byMonth[m]?k:m, keys[0]);
+      ins.push(`Ən yüklü ay: <b>${monLabel(new Date(peak))}</b> (${fmt(byMonth[peak])}).`);
+      if(keys.length>1){
+        const firstK = keys[0], lastK = keys[keys.length-1];
+        ins.push(`Aylıq yük <b>${fmt(byMonth[firstK])}</b>-dən <b>${fmt(byMonth[lastK])}</b>-ə qədər azalacaq.`);
+      }
     }
-  };
+  } else {
+    ins.push('Aktiv kredit yoxdur — bütün kreditlər ödənilib.');
+  }
+  document.getElementById('an-insights').innerHTML = ins.map(t=>`<div class="an-ins">${t}</div>`).join('');
 
-  CHARTS['ch-donut'] = new Chart(document.getElementById('ch-donut'),{
-    type:'pie',
+  const tipBase = { backgroundColor: surf, titleColor: ink, bodyColor: ink, borderColor: cssVar('--border'), borderWidth: 1, padding: 10, cornerRadius: 8 };
+  const axisX = { ticks:{ color: muted, font:{size:11}, maxRotation:0, autoSkip:true, maxTicksLimit:12 }, grid:{ display:false }, border:{ color: cssVar('--border') } };
+  const axisY = { beginAtZero:true, ticks:{ color: muted, font:{size:11}, callback:v=>Math.round(v).toLocaleString('en-US') }, grid:{ color: grid }, border:{ display:false } };
+
+  // ── 1) İrəliləyiş: ödənilmiş vs qalıq (hər kredit öz rəngi ilə) ──
+  destroyChart('ch-prog');
+  const wrap = document.getElementById('an-prog-wrap');
+  wrap.style.height = (rows.length*46 + 56) + 'px';
+  CHARTS['ch-prog'] = new Chart(document.getElementById('ch-prog'),{
+    type:'bar',
     data:{
-      labels:['Ödənilmiş ('+paidPct+'%)','Qalıq ('+remainPct+'%)'],
-      datasets:[{
-        data:[totalPaid, totalRemain],
-        backgroundColor:['rgba(16,185,129,.75)','rgba(239,68,68,.75)'],
-        borderColor:['#10b981','#ef4444'],
-        borderWidth:2,
-        hoverOffset:6
-      }]
+      labels: rows.map(r=>r.cr.name+' · '+Math.round(r.cv.pct)+'%'),
+      datasets:[
+        { label:'Ödənilib', data: rows.map(r=>+r.cv.paidAmt.toFixed(2)), backgroundColor: rows.map(r=>r.cr.color||'#3b82f6'), borderColor: surf, borderWidth:2, borderRadius:4, barThickness:18, stack:'s' },
+        { label:'Qalıb',    data: rows.map(r=>+r.cv.remainAmt.toFixed(2)), backgroundColor: rows.map(r=>hexA(r.cr.color,.22)), borderColor: surf, borderWidth:2, borderRadius:4, barThickness:18, stack:'s' }
+      ]
     },
     options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      layout:{ padding:{left:50,right:50,top:20,bottom:20} },
-      plugins:{
-        legend:{ display:false },
-        tooltip:{ callbacks:{ label: ctx => ctx.label + ': ' + Math.round(ctx.parsed) + ' ₼' }}
-      }
-    },
-    plugins:[pieLabelsPlugin]
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ right:18 } },
+      plugins:{ legend:{ position:'bottom', labels:{ color: muted, boxWidth:10, boxHeight:10, font:{size:11} } },
+        tooltip:{ ...tipBase, callbacks:{ label:c=>' '+c.dataset.label+': '+fmt(c.parsed.x) } } },
+      scales:{ x:{ ...axisY, stacked:true, ticks:{ ...axisY.ticks } }, y:{ stacked:true, ticks:{ color: ink, font:{size:12, weight:'600'} }, grid:{ display:false }, border:{ display:false } } }
+    }
   });
+
+  // ── 2) Gələcək aylıq yük (kredit üzrə üst-üstə) ──
+  const monthSet = new Set();
+  activeRows.forEach(r=>r.sch.forEach(x=>monthSet.add(x.d.getTime())));
+  const months = [...monthSet].sort((a,b)=>a-b).slice(0,120);
+  destroyChart('ch-load');
+  CHARTS['ch-load'] = new Chart(document.getElementById('ch-load'),{
+    type:'bar',
+    data:{
+      labels: months.map(t=>monLabel(new Date(t))),
+      datasets: activeRows.map(r=>{
+        const m = {}; r.sch.forEach(x=>m[x.d.getTime()] = x.pay);
+        return { label:r.cr.name, data: months.map(t=>+(m[t]||0).toFixed(2)), backgroundColor:r.cr.color||'#3b82f6', borderColor:surf, borderWidth:1.5, borderRadius:3, stack:'l' };
+      })
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display: activeRows.length>1, position:'bottom', labels:{ color: muted, boxWidth:10, boxHeight:10, font:{size:11} } },
+        tooltip:{ ...tipBase, mode:'index', intersect:false, filter:i=>i.parsed.y>0,
+          callbacks:{ label:c=>' '+c.dataset.label+': '+fmt(c.parsed.y), footer:items=>activeRows.length>1 ? 'Cəmi: '+fmt(items.reduce((a,i)=>a+i.parsed.y,0)) : '' } } },
+      scales:{ x:{ ...axisX, stacked:true }, y:{ ...axisY, stacked:true } }
+    }
+  });
+
+  // ── 3) Qalıq borcun azalması ──
+  const remPts = [activeRows.reduce((a,r)=>a+r.cv.remainAmt,0)];
+  months.forEach(t=>{
+    const paid = activeRows.reduce((a,r)=>a + (r.sch.find(x=>x.d.getTime()===t)||{pay:0}).pay, 0);
+    remPts.push(Math.max(0, +(remPts[remPts.length-1]-paid).toFixed(2)));
+  });
+  destroyChart('ch-remain');
+  CHARTS['ch-remain'] = new Chart(document.getElementById('ch-remain'),{
+    type:'line',
+    data:{ labels:['Bu gün', ...months.map(t=>monLabel(new Date(t)))],
+      datasets:[{ label:'Qalıq borc', data:remPts, borderColor:blue, backgroundColor:hexA(blue,.12), fill:true, borderWidth:2, tension:.25, pointRadius:0, pointHoverRadius:5, pointHoverBackgroundColor:blue, pointHoverBorderColor:surf, pointHoverBorderWidth:2 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:{ display:false }, tooltip:{ ...tipBase, callbacks:{ label:c=>' Qalıq: '+fmt(c.parsed.y) } } },
+      scales:{ x:axisX, y:axisY }
+    }
+  });
+
+  // ── 4) Müqayisə cədvəli ──
+  const rated = activeRows.filter(r=>(r.cr.rate||0)>0);
+  const maxRate = rated.length>1 ? Math.max(...rated.map(r=>r.cr.rate)) : null;
+  const ends = activeRows.filter(r=>r.end).map(r=>r.end.getTime());
+  const minEnd = activeRows.length>1 && ends.length ? Math.min(...ends) : null;
+  const body = rows.map(r=>{
+    const c = r.cr;
+    const tags = (maxRate!==null && c.rate===maxRate && !r.cv.isDone ? '<span class="an-tag">ən yüksək faiz</span>' : '') +
+                 (minEnd!==null && r.end && r.end.getTime()===minEnd ? '<span class="an-tag g">ən tez bitir</span>' : '') +
+                 (r.cv.isDone ? '<span class="an-tag g">bağlanıb</span>' : '');
+    return `<tr><td><span class="an-dot" style="background:${c.color||'#3b82f6'}"></span>${c.name}${tags}</td>
+      <td>${c.rate||0}%</td><td>${fmt(c.monthly||0)}</td>
+      <td>${r.cv.paidMonths}/${c.termMonths}</td><td>${r.cv.remainMonths}</td>
+      <td>${fmt(r.cv.remainAmt)}</td><td>${fmt(r.pb)}</td><td>${fmt(r.interestTotal)}</td>
+      <td>${r.end ? monLabel(r.end) : '—'}</td></tr>`;
+  }).join('');
+  const sum = f => rows.reduce((a,r)=>a+f(r),0);
+  document.getElementById('an-table').innerHTML =
+    `<table class="an-tbl"><thead><tr><th>Kredit</th><th>Faiz</th><th>Aylıq</th><th>Ödənilib</th><th>Qalan ay</th><th>Qalıq (faiz daxil)</th><th>Əsas borc qalığı</th><th>Ümumi faiz</th><th>Bitir</th></tr></thead>
+     <tbody>${body}</tbody>
+     <tfoot><tr><td>Cəmi</td><td></td><td>${fmt(sum(r=>r.cv.isDone?0:(r.cr.monthly||0)))}</td><td></td><td></td><td>${fmt(sum(r=>r.cv.remainAmt))}</td><td>${fmt(sum(r=>r.pb))}</td><td>${fmt(sum(r=>r.interestTotal))}</td><td>${lastEnd?monLabel(lastEnd):'—'}</td></tr></tfoot></table>`;
 }
+
+// Tema dəyişəndə təhlil açıqdırsa rəngləri yenilə
+new MutationObserver(()=>{ if(typeof curTab!=='undefined' && curTab==='charts') renderCharts(); })
+  .observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+new MutationObserver(()=>{ if(typeof curTab!=='undefined' && curTab==='charts') renderCharts(); })
+  .observe(document.body, { attributes:true, attributeFilter:['data-theme'] });
 
 function destroyChart(id){
   if(CHARTS[id]){ try{CHARTS[id].destroy();}catch(e){} delete CHARTS[id]; }
