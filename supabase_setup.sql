@@ -51,6 +51,8 @@ create policy "inbox_owner_all" on public.inbox
 
 revoke all on public.inbox from anon;
 grant insert on public.inbox to anon;
+-- Bu layihədə cədvəllərə rollara avtomatik icazə verilmir — giriş etmiş siz üçün açıq veririk:
+grant select, insert, update, delete on public.inbox to authenticated;
 
 -- ─────────────────────────────────────────────────────────────
 -- 2) APP_KV — əsas tətbiqin bütün datası (log, kredit, borc, proqnoz...)
