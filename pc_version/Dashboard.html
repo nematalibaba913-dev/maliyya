@@ -36,6 +36,11 @@
   --r:12px;
 }
 
+/* Ümumi Gəlir / Xərc kartları: başlıq yuxarıda, məbləğ və alt yazı şaquli ortada */
+.kpi-center{display:flex;flex-direction:column;}
+.kpi-center .kpi-val{margin-top:auto;margin-bottom:4px !important;}
+.kpi-center .kpi-sub{margin-bottom:auto;font-size:13px;}
+
 /* DARK MODE */
 body.dark{
   --grid-color:rgba(255,255,255,0.07);
@@ -519,7 +524,7 @@ body.dark .cat-dropdown-list{background:var(--surface);border-color:var(--border
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto;gap:12px;margin-bottom:12px;align-items:stretch;">
 
       <!-- Kredit kartı — sıra 1-2, sütun 3 -->
-      <div style="grid-column:3;grid-row:1;display:flex;align-items:stretch;">
+      <div style="grid-column:1;grid-row:1;display:flex;align-items:stretch;">
         <div class="kpi blue" id="kpi-bal" style="width:100%;display:flex;flex-direction:column;">
           <!-- Yuxarı: başlıq sol, boş sağ -->
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -547,16 +552,16 @@ body.dark .cat-dropdown-list{background:var(--surface);border-color:var(--border
       </div>
 
       <!-- Ümumi Gəlir -->
-      <div class="kpi green kpi-gelir-card" style="grid-column:1;grid-row:1;padding:12px 16px;">
+      <div class="kpi green kpi-gelir-card kpi-center" style="grid-column:2;grid-row:1;padding:12px 16px;">
         <div class="kpi-top" style="margin-bottom:6px;"><span class="kpi-label">Ümumi Gəlir</span><div class="kpi-ico">▲</div></div>
-        <div class="kpi-val" id="k-income" style="font-size:20px;">—</div>
+        <div class="kpi-val" id="k-income" style="font-size:26px;">—</div>
         <div class="kpi-sub" id="k-income-c">—</div>
       </div>
 
       <!-- Ümumi Xərc -->
-      <div class="kpi red kpi-xerc-card" style="grid-column:2;grid-row:1;padding:12px 16px;">
+      <div class="kpi red kpi-xerc-card kpi-center" style="grid-column:3;grid-row:1;padding:12px 16px;">
         <div class="kpi-top" style="margin-bottom:6px;"><span class="kpi-label">Ümumi Xərc</span><div class="kpi-ico">▼</div></div>
-        <div class="kpi-val" id="k-expense" style="font-size:20px;">—</div>
+        <div class="kpi-val" id="k-expense" style="font-size:26px;">—</div>
         <div class="kpi-sub" id="k-expense-c">—</div>
       </div>
 
@@ -633,7 +638,7 @@ body.dark .cat-dropdown-list{background:var(--surface);border-color:var(--border
       <div class="card">
         <div class="card-title">Xərc Kateqoriyaları</div>
         <div class="card-sub">Paylanma faizi</div>
-        <div style="margin:10px 0 4px;">
+        <div style="margin:10px 0 20px;">
           <div class="slicer-label">Kateqoriya</div>
           <div class="cat-dropdown-wrap" id="cat-dropdown-wrap" style="min-width:0;max-width:none;width:100%;">
             <button class="cat-dropdown-btn" id="cat-dropdown-btn" onclick="toggleCatDropdown()" style="width:100%;">
@@ -1428,11 +1433,11 @@ function renderCharts(){
           label: 'Balans',
           data: cumVals,
           borderWidth: 2.5,
-          tension: 0.4,
+          tension: 0.45,
           fill: true,
           pointRadius: nPts > 30 ? 0 : nPts > 15 ? 2 : 4,
           pointHoverRadius: 6,
-          cubicInterpolationMode: 'monotone',
+          cubicInterpolationMode: 'default',
           borderColor: function(ctx){
             const ch = ctx.chart;
             const {ctx:cx, chartArea:ca, scales:sc} = ch;
