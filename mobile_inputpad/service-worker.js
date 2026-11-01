@@ -5,8 +5,8 @@
  * Offline rejim: App shell həmişə açılır
  */
 
-const CACHE_NAME    = 'myfinance-v7';
-const CACHE_STATIC  = 'myfinance-static-v7';
+const CACHE_NAME    = 'myfinance-v8';
+const CACHE_STATIC  = 'myfinance-static-v8';
 
 // Əsas app shell — bunlar offline halda açılmalıdır
 const APP_SHELL = [
@@ -20,6 +20,7 @@ const APP_SHELL = [
   './sync.js',
   './supabase-config.js',
   './mf-supabase.js',
+  './receipt.js',
   './db.js',
   './backup.js',
   './manifest.webmanifest',
