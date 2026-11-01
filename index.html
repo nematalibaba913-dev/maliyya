@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maliyyə</title>
+<meta name="theme-color" content="#0f1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Finance">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('maliyya_theme');
+    if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+
+<!-- Konfiqurasiya tamamlanmayıbsa -->
+<section id="setup" class="center-screen" hidden>
+  <div class="card narrow">
+    <h1>Qurulum tamamlanmayıb</h1>
+    <p class="muted-text"><code>js/config.js</code> faylında <code>url</code> dəyərini Supabase layihənin Project URL ünvanı ilə əvəz et, sonra səhifəni yenilə.</p>
+  </div>
+</section>
+
+<!-- Giriş -->
+<section id="login" class="center-screen" hidden>
+  <form id="login-form" class="card narrow" autocomplete="on">
+    <h1>Maliyyə</h1>
+    <p class="muted-text">Daxil olmaq üçün e-poçt və şifrəni yaz.</p>
+    <label for="l-email">E-poçt</label>
+    <input id="l-email" type="email" autocomplete="username" required>
+    <label for="l-pass">Şifrə</label>
+    <input id="l-pass" type="password" autocomplete="current-password" required>
+    <div id="l-err" class="form-err" role="alert"></div>
+    <button class="btn btn-primary" type="submit" id="l-btn">Daxil ol</button>
+  </form>
+</section>
+
+<!-- Tətbiq -->
+<div id="app" hidden>
+  <nav id="nav" aria-label="Əsas menyu">
+    <div class="brand">Maliyyə</div>
+    <a href="#giris" data-view="giris"><span class="ic">＋</span><span class="tx">Giriş</span></a>
+    <a href="#log" data-view="log"><span class="ic">☰</span><span class="tx">Log</span></a>
+    <a class="soon" aria-disabled="true" title="Növbəti mərhələdə"><span class="ic">▥</span><span class="tx">Dashboard</span></a>
+    <a class="soon" aria-disabled="true" title="Növbəti mərhələdə"><span class="ic">%</span><span class="tx">Kreditlər</span></a>
+    <a class="soon" aria-disabled="true" title="Növbəti mərhələdə"><span class="ic">⇄</span><span class="tx">Borclar</span></a>
+    <a class="soon" aria-disabled="true" title="Növbəti mərhələdə"><span class="ic">◷</span><span class="tx">Proqnoz</span></a>
+    <div class="nav-foot">
+      <div id="sync" class="sync-pill" hidden></div>
+      <button class="link-btn" id="theme-btn" type="button">Tema</button>
+      <button class="link-btn" id="out-btn" type="button">Çıxış</button>
+    </div>
+  </nav>
+  <main id="view"></main>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function (e) { console.warn('[SW]', e); });
+  });
+}
+</script>
+</body>
+</html>
