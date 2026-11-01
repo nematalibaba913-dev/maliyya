@@ -409,7 +409,7 @@ function renderAll(){
   // Summary
   const tot = {'borc-aldim':0,'borc-verdim':0,'qaytardim':0,'mene-qaytardi':0};
   const cnt = {'borc-aldim':0,'borc-verdim':0,'qaytardim':0,'mene-qaytardi':0};
-  transfers.filter(t=>!t.done).forEach(t=>{ if(tot[t.type]!==undefined) tot[t.type]+=t.amount; if(cnt[t.type]!==undefined) cnt[t.type]++; });
+  transfers.filter(t=>!t.done).forEach(t=>{ if(tot[t.type]!==undefined) tot[t.type]+=+(t.amount-(t.paid||0)).toFixed(2); if(cnt[t.type]!==undefined) cnt[t.type]++; });
 
   document.getElementById('sum-ba').textContent  = fmt(tot['borc-aldim']);
   document.getElementById('sum-bv').textContent  = fmt(tot['borc-verdim']);
@@ -445,8 +445,8 @@ function renderAll(){
           <div class="tr-meta">${t.date}</div>
         </div>
         <div class="tr-right">
-          <div class="tr-amt ${cardClass}">${sign}${fmt(t.amount)}</div>
-          ${(t.paid||0)>0?`<div class="tr-remaining">Qalıq: ${fmt(remaining)}</div>`:''}
+          <div class="tr-amt ${cardClass}">${sign}${fmt((t.paid||0)>0 && !t.done ? remaining : t.amount)}</div>
+          ${(t.paid||0)>0 && !t.done?`<div class="tr-remaining">İlkin borc: ${fmt(t.amount)}</div>`:''}
         </div>
       </div>
       ${t.amount>0?`<div class="tr-progress">
