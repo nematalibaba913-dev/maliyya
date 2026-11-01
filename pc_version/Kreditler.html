@@ -315,6 +315,15 @@ function calc(cr){
   return { paidAmt, remainAmt, paidMonths, remainMonths, pct, isDone, isNew, nextPayDate: next };
 }
 
+function principalBalance(cr){
+  // Əsas borc qalığı: alınan məbləğdən başlayıb, faiz yığa-yığa real ödənişləri tətbiq edir
+  const r = (cr.rate||0)/100/12;
+  let b = cr.taken || 0;
+  const pays = [...(cr.payments||[])].sort((x,y)=>String(x.date).localeCompare(String(y.date)));
+  pays.forEach(p=>{ b = b*(1+r) - (p.amount||0); });
+  return Math.max(0, Math.round(b*100)/100);
+}
+
 function fmt(n){ return new Intl.NumberFormat('az-AZ',{minimumFractionDigits:0,maximumFractionDigits:0}).format(n)+' ₼'; }
 function fmtDate(d){
   if(!d || isNaN(d)) return '—';
@@ -345,16 +354,10 @@ function renderSummary(){
     totalPayable  += cr.totalPayable;
     // Aylıq ödənişlər cəmi — yalnız aktiv (bitməmiş) kreditlər
     if(!cv.isDone) totalMonthly += (cr.monthly||0);
-    // Bu günə olan borc qalığı — bu günə qədər ödənilməli olan məbləğ
+    // Bu günə borc qalığı = əsas borcun (faizsiz) real ödənişlərdən sonrakı qalığı:
+    // hər ödənişdən əvvəl aylıq faiz yığılır, sonra ödəniş çıxılır (annuitet).
     if(!cv.isDone){
-      const start = new Date(cr.startDate);
-      // Bu günə qədər neçə ay keçib
-      const monthsPassed = (today.getFullYear()-start.getFullYear())*12 + (today.getMonth()-start.getMonth());
-      const expectedPaid = Math.min(monthsPassed, cr.termMonths) * cr.monthly;
-      const actualPaid   = cv.paidAmt;
-      // Bu günə borc qalığı = ümumi öhdəlik - bu günə qədər ödənilmiş olmalı idisə
-      const todayDebt = Math.max(0, cr.totalPayable - expectedPaid);
-      todayBalance += todayDebt;
+      todayBalance += principalBalance(cr);
     }
     if(cr.endDate) lastPayDates.push(cr.endDate);
   });
@@ -373,7 +376,7 @@ function renderSummary(){
   document.getElementById('s-monthly').textContent     = fmt(totalMonthly);
   document.getElementById('s-monthly-sub').textContent = active.filter(cr=>!calc(cr).isDone).length + ' aktiv kredit';
   document.getElementById('s-today').textContent       = fmt(todayBalance);
-  document.getElementById('s-today-sub').textContent   = 'bu günə qalıq';
+  document.getElementById('s-today-sub').textContent   = 'əsas borc (faizsiz)';
 }
 
 function renderCards(){
