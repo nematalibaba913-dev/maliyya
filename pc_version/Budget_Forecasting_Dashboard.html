@@ -274,6 +274,61 @@
 
 </style>
 <link rel="stylesheet" href="mf-mobile.css">
+<style>
+/* Telefon uyğunluğu — yalnız dar ekranda, PC görünüşünə toxunmur */
+@media (max-width: 640px) {
+  body { padding: 8px 8px 80px; }
+  .container { border-radius: 16px; min-height: 0; }
+  .month-tabs { padding: 10px 12px; border-top-left-radius: 16px; border-top-right-radius: 16px; }
+  .month-btn { padding: 7px 13px; font-size: 13px; margin-right: 8px; }
+  .summary-header { padding: 16px 0; gap: 14px 0; }
+  .sum-label { font-size: .68rem; letter-spacing: .6px; }
+  .sum-val { font-size: 1.35rem; }
+  .yearly-section { padding: 16px 14px; }
+  .chart-container { height: 220px; margin-top: 12px; }
+  .annual-summary-cards { gap: 10px; }
+  .a-card { padding: 10px 6px; }
+  .a-card h4 { font-size: .68rem; }
+  .a-card .val { font-size: 1.15rem; }
+  .section-title { font-size: 1.05rem; margin-bottom: 10px; }
+  .tables { padding: 14px 10px; gap: 16px; }
+  .box { min-width: 0; }
+  .box-title { padding: 10px; font-size: 1rem; }
+  /* mf-mobile.css cədvəli blok edir; burada sabit sütunlu normal cədvələ qaytarırıq */
+  table { display: table; overflow: visible; table-layout: fixed; width: 100%; }
+  th, td { padding: 10px 6px; font-size: 12.5px; }
+  th { font-size: 10.5px; }
+  table th:first-child, table td:first-child, .col-note, th.col-note { display: none; }
+  .col-date { width: 84px; }
+  .col-cat { width: auto; }
+  .amount { width: 74px; padding-right: 6px !important; letter-spacing: 0; }
+  .action-cell { width: 40px; }
+  .sq-btn { width: 28px; height: 28px; }
+  .action-menu { right: 34px; width: 130px; }
+  .calendar-wrapper { padding: 14px 10px; }
+  .calendar-container-scroll { grid-template-columns: 1fr; gap: 14px; }
+  .single-cal { min-width: 0; padding: 10px; }
+  .cal-grid-7 { gap: 3px; }
+  .cal-c { font-size: 12px; border-radius: 8px; }
+  .recurring-wrapper { padding: 14px 12px 6px; }
+  .rec-summary-panel { grid-template-columns: 1fr; gap: 6px; }
+  .rec-split-container { grid-template-columns: 1fr; }
+  .add-form { padding: 16px 12px; gap: 10px; }
+  .add-form > * { min-width: 0; flex: 1 1 100%; }
+  .add-form.recurring-style { padding: 14px 12px; }
+  .rec-inputs-row { gap: 10px; }
+  .rec-inputs-row > * { min-width: 0; flex: 1 1 100%; }
+  .month-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .month-check { padding: 6px 6px; font-size: 12px; }
+  .type-buttons { min-width: 0; width: 100%; }
+  .date-container { flex: 0 0 52px !important; }
+  input, select { font-size: 16px; height: 48px; }
+  .modern-btn { height: 48px; }
+  .bottom-controls { padding: 12px; gap: 10px; }
+  .bottom-controls input[type="number"] { width: 110px; }
+}
+</style>
+
 <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
