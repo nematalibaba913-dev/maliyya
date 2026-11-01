@@ -30,7 +30,11 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min
 /* CONTENT */
 .content{max-width:1400px;margin:0 auto;padding:16px 24px;}
 /* SUMMARY CARDS */
-.sum-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px;}
+.sum-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;}
+.sum-hero{margin-bottom:10px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+.sum-hero .sum-label{font-size:12px;margin-bottom:10px;}
+.sum-hero .sum-val{font-size:34px;margin-bottom:0;}
+.sum-hero .sum-sub{font-size:13px;}
 @media(max-width:1100px){.sum-grid{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:600px){.sum-grid{grid-template-columns:1fr 1fr;}}
 /* Cards responsive */
@@ -151,9 +155,9 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min
 
 <div class="content">
 
-  <!-- SUMMARY — 1 sətir, 6 kart -->
+  <!-- SUMMARY — Qalıq Borc ayrıca üstdə, aşağıda 5 kart -->
+  <div class="sum-card red sum-hero"><div><div class="sum-label">Qalıq Borc</div><div class="sum-val" id="s-remain">—</div></div><div class="sum-sub" id="s-remain-sub">—</div></div>
   <div class="sum-grid" id="sum-grid">
-    <div class="sum-card red"><div class="sum-label">Qalıq Borc</div><div class="sum-val" id="s-remain">—</div><div class="sum-sub" id="s-remain-sub">—</div></div>
     <div class="sum-card green"><div class="sum-label">Ödənilmiş Borc</div><div class="sum-val" id="s-paid">—</div><div class="sum-sub" id="s-paid-sub">—</div></div>
     <div class="sum-card blue"><div class="sum-label">Ümumi Alınan</div><div class="sum-val" id="s-taken">—</div><div class="sum-sub" id="s-taken-sub">—</div></div>
     <div class="sum-card amber"><div class="sum-label">Ümumi Öhdəlik</div><div class="sum-val" id="s-total">—</div><div class="sum-sub" id="s-total-sub">—</div></div>
