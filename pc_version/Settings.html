@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parametrlər</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<script>
+(function(){
+  var k = localStorage.getItem('page_theme_index') || 'dark';
+  document.documentElement.setAttribute('data-theme', k === 'light' ? 'light' : 'dark');
+})();
+</script>
+<script src="supabase-config.js"></script>
+<script src="mf-supabase.js"></script>
+<script src="mf-sync.js"></script>
+<script src="db.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#07090f;--surface:#11151f;--surface2:#171c29;--border:rgba(255,255,255,.09);--text:#eef0fa;--muted:#9aa3c4;--green:#1fd98a;--red:#ff5f5f;--blue:#4fa3ff;--amber:#f5b942;--r:14px;}
+[data-theme=light]{--bg:#f0f4f8;--surface:#fff;--surface2:#f7f9fb;--border:#e2e8f0;--text:#111827;--muted:#6b7280;--green:#10b981;--red:#ef4444;--blue:#3b82f6;--amber:#d98e04;}
+body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min-height:100vh;padding-bottom:60px;}
+.topbar{position:sticky;top:0;z-index:50;background:var(--surface);border-bottom:1px solid var(--border);height:54px;padding:0 16px;display:flex;align-items:center;gap:12px;}
+.topbar a{color:var(--blue);text-decoration:none;font-size:14px;font-weight:600;}
+.topbar-title{font-size:16px;font-weight:800;}
+.wrap{max-width:720px;margin:0 auto;padding:18px 16px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 18px 16px;margin-bottom:14px;}
+.card h2{font-size:15px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.card p{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:12px;}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+input[type=number],input[type=text]{background:var(--surface2);color:var(--text);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:15px;font-family:'DM Mono',monospace;outline:none;min-width:0;}
+input:focus{border-color:var(--blue);}
+.btn{border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-amber{background:var(--amber);color:#1a1100;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.stat{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+.stat .l{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:700;margin-bottom:4px;}
+.stat .v{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;}
+.keep,.del{font-size:13px;line-height:1.7;margin-bottom:12px;}
+.keep b{color:var(--green);} .del b{color:var(--red);}
+.danger{border-color:rgba(239,68,68,.45);}
+.danger h2{color:var(--red);}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--text);margin:10px 0;line-height:1.45;cursor:pointer;}
+.chk input{margin-top:3px;}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;}
+.ov.show{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;width:460px;max-width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.5);}
+.modal h3{font-size:17px;font-weight:800;margin-bottom:10px;}
+.modal p,.modal li{font-size:13.5px;line-height:1.6;color:var(--muted);}
+.modal ul{margin:8px 0 12px 18px;}
+.modal .warn{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);color:var(--red);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;margin:10px 0;line-height:1.5;}
+.modal .btns{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--surface);color:var(--text);border:1px solid var(--border);padding:10px 18px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:300;box-shadow:0 8px 28px rgba(0,0,0,.4);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@media(max-width:560px){.stats{grid-template-columns:1fr 1fr;}}
+</style>
+<link rel="stylesheet" href="mf-mobile.css">
+</head>
+<body>
+<div class="topbar"><a href="index.html">‹ Ana səhifə</a><div class="topbar-title">Parametrlər</div></div>
+
+<div class="wrap">
+
+  <!-- Hazırkı vəziyyət -->
+  <div class="card">
+    <h2>📊 Hazırkı vəziyyət</h2>
+    <div class="stats">
+      <div class="stat"><div class="l">Xalis balans</div><div class="v" id="st-bal">—</div></div>
+      <div class="stat"><div class="l">Gəlir-Xərc sətri</div><div class="v" id="st-gx">—</div></div>
+      <div class="stat"><div class="l">Kredit / Borc logu</div><div class="v" id="st-cb">—</div></div>
+      <div class="stat"><div class="l">Kredit sayı</div><div class="v" id="st-cr">—</div></div>
+      <div class="stat"><div class="l">Borc sayı</div><div class="v" id="st-tr">—</div></div>
+      <div class="stat"><div class="l">Başlanğıc qalığı</div><div class="v" id="st-ob">—</div></div>
+    </div>
+  </div>
+
+  <!-- Başlanğıc qalığı -->
+  <div class="card">
+    <h2>💰 Başlanğıc qalığı</h2>
+    <p>Hesabın başlanğıc balansı. Dashboard və ana səhifədəki bütün hesablamalar bu rəqəm əsasında aparılır.</p>
+    <div class="row">
+      <input type="number" id="ob-input" placeholder="0.00" step="0.01" inputmode="decimal" style="flex:1;min-width:140px;">
+      <span style="font-weight:700;">₼</span>
+      <button class="btn btn-blue" id="ob-save">Saxla</button>
+    </div>
+  </div>
+
+  <!-- Növbəti ilə keç -->
+  <div class="card">
+    <h2>📅 Növbəti ilə keç</h2>
+    <p>İl sonunda istifadə edin. Əməliyyat jurnalları təmizlənir, il sonu qalığı yeni ilin başlanğıc qalığı olur.</p>
+    <div class="keep">
+      <div><b>✓ Qalır:</b> kreditlər və borclar (olduğu kimi)</div>
+      <div><b>↻ Köçür:</b> il sonu qalığı → yeni ilin başlanğıc qalığı</div>
+      <div class="del"><b>✕ Silinir:</b> Gəlir-Xərc logu, Kredit logu, Borc logu</div>
+    </div>
+    <button class="btn btn-amber" id="ny-open">Növbəti ilə keç…</button>
+  </div>
+
+  <!-- Datanı sıfırla -->
+  <div class="card danger">
+    <h2>⚠️ Datanı sıfırla</h2>
+    <p>Bütün məlumatı silir: loglar, kreditlər, borclar, büdcə proqnozu və başlanğıc qalığı. Telefon və kompüter sinxron olduğu üçün hər iki cihazdan silinir. Əməliyyatdan əvvəl ehtiyat nüsxə avtomatik endirilir.</p>
+    <button class="btn btn-red" id="rs-open">Datanı sıfırla…</button>
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div class="ov" id="ov"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// Yaddaş: oxu / yaz (LS + IndexedDB, sinxron üçün MFSync.write)
+// ─────────────────────────────────────────────
+const LOG_KEYS      = ['gelirxerc_cache','credit_log_v1','borc_log_v1','mf_transactions'];
+const FORECAST_KEYS = ['budgetApp2025','budgetBalances2025','budgetRecurring2025','budgetOverrides2025'];
+const ALL_KEYS      = ['gelirxerc_cache','credit_log_v1','borc_log_v1','kreditler_v2','transfers_offline_v1','mf_transactions','mf_opening_bal'].concat(FORECAST_KEYS);
+
+const $ = id => document.getElementById(id);
+const r2 = n => Math.round(n*100)/100;
+const fmt = n => new Intl.NumberFormat('az-AZ',{minimumFractionDigits:0,maximumFractionDigits:2}).format(n) + ' ₼';
+const fold = s => String(s||'').toLowerCase().replace(/ı/g,'i').replace(/ə/g,'e').replace(/ş/g,'s').replace(/ç/g,'c').replace(/ö/g,'o').replace(/ü/g,'u').replace(/ğ/g,'g').trim();
+
+function toArr(v){
+  if(!v) return [];
+  if(Array.isArray(v)) return v;
+  try{ const p = JSON.parse(v); return Array.isArray(p) ? p : []; }catch(e){ return []; }
+}
+// Səhifələrin oxuduğu qaydada: əvvəl localStorage, IndexedDB-də boş olmayan varsa o
+async function readArr(key){
+  let arr = toArr(localStorage.getItem(key));
+  if(window.BudgetDB){
+    try{
+      const idbName = key === 'kreditler_v2' ? 'kreditler_v2' : key;
+      const val = key === 'gelirxerc_cache' && BudgetDB.getBudget ? await BudgetDB.getBudget(idbName) : await BudgetDB.getSetting(idbName);
+      const p = toArr(val);
+      if(p.length) arr = p;
+    }catch(e){}
+  }
+  return arr;
+}
+async function readOpening(){
+  let v = parseFloat(localStorage.getItem('mf_opening_bal')||'0') || 0;
+  if(window.BudgetDB){
+    try{ const ob = await BudgetDB.getSetting('mf_opening_bal'); if(ob != null) v = parseFloat(ob) || v; }catch(e){}
+  }
+  return v;
+}
+async function setKey(key, value){          // value: mətn və ya null (silmək)
+  if(window.MFSync && MFSync.write) return MFSync.write(key, value);
+  if(value == null) localStorage.removeItem(key); else localStorage.setItem(key, value);
+  if(window.BudgetDB){
+    try{
+      if(value == null) await BudgetDB.setSetting(key, null);
+      else if(key === 'mf_opening_bal') await BudgetDB.setSetting(key, value);
+      else { const a = toArr(value); if(a.length || value === '[]') await BudgetDB.setSetting(key, a); }
+    }catch(e){}
+  }
+}
+
+// Xalis balans (ana səhifə ilə eyni qayda)
+function sumLog(rows, getAmt, getType){
+  let inc = 0, exp = 0;
+  rows.forEach(t=>{
+    const a = getAmt(t), tp = String(getType(t)||'').toLowerCase();
+    if(tp.includes('gəlir') || tp.includes('gelir')) inc += a; else exp += a;
+  });
+  return {inc, exp};
+}
+async function snapshot(){
+  const gx = await readArr('gelirxerc_cache');
+  const cl = await readArr('credit_log_v1');
+  const bl = await readArr('borc_log_v1');
+  const lg = toArr(localStorage.getItem('mf_transactions'));
+  const cr = await readArr('kreditler_v2');
+  const tr = await readArr('transfers_offline_v1');
+  const ob = await readOpening();
+  const a = sumLog(gx, t=>parseFloat(t.Mebleg)||0, t=>t.Emeliyyat);
+  const b = sumLog(cl, t=>parseFloat(t.amount||t.Mebleg)||0, t=>t.type||t.Emeliyyat);
+  const c = sumLog(bl, t=>parseFloat(t.amount||t.Mebleg)||0, t=>t.type||t.Emeliyyat);
+  const d = sumLog(lg, t=>parseFloat(t.Mebleg)||0, t=>t.Emeliyyat);
+  const balance = r2(ob + a.inc+b.inc+c.inc+d.inc - (a.exp+b.exp+c.exp+d.exp));
+  return { gx, cl, bl, lg, cr, tr, ob, balance };
+}
+
+async function refresh(){
+  const s = await snapshot();
+  $('st-bal').textContent = fmt(s.balance);
+  $('st-gx').textContent  = s.gx.length + s.lg.length;
+  $('st-cb').textContent  = s.cl.length + ' / ' + s.bl.length;
+  $('st-cr').textContent  = s.cr.length;
+  $('st-tr').textContent  = s.tr.length;
+  $('st-ob').textContent  = fmt(s.ob);
+  if(document.activeElement !== $('ob-input')) $('ob-input').value = s.ob || '';
+  return s;
+}
+
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// Ehtiyat nüsxə: bütün açarlar bir JSON faylında
+function downloadBackup(tag){
+  const out = { app:'maliyya', kind:tag, exportedAt:new Date().toISOString(), data:{} };
+  ALL_KEYS.forEach(k=>{ const v = localStorage.getItem(k); if(v != null) out.data[k] = v; });
+  const blob = new Blob([JSON.stringify(out,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'maliyya_backup_' + tag + '_' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+
+// ─────────────────────────────────────────────
+// Başlanğıc qalığı
+// ─────────────────────────────────────────────
+$('ob-save').onclick = async ()=>{
+  const v = r2(parseFloat($('ob-input').value) || 0);
+  await setKey('mf_opening_bal', String(v));
+  await refresh();
+  toast('Başlanğıc qalığı saxlandı: ' + fmt(v));
+};
+$('ob-input').addEventListener('keydown', e=>{ if(e.key === 'Enter') $('ob-save').click(); });
+
+// ─────────────────────────────────────────────
+// Modal köməkçisi
+// ─────────────────────────────────────────────
+function showModal(html){ $('modal').innerHTML = html; $('ov').classList.add('show'); }
+function closeModal(){ $('ov').classList.remove('show'); $('modal').innerHTML = ''; clearInterval(closeModal._t); }
+$('ov').addEventListener('click', e=>{ if(e.target === $('ov')) closeModal(); });
+document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeModal(); });
+function countdown(btn, secs, label){
+  clearInterval(closeModal._t);
+  let n = secs; btn.disabled = true; btn.textContent = label + ' (' + n + ')';
+  closeModal._t = setInterval(()=>{
+    n--; if(n <= 0){ clearInterval(closeModal._t); btn.disabled = false; btn.textContent = label; }
+    else btn.textContent = label + ' (' + n + ')';
+  }, 1000);
+}
+
+// ─────────────────────────────────────────────
+// Növbəti ilə keç
+// ─────────────────────────────────────────────
+function shiftYear(m){ const p = String(m).split('-'); return (parseInt(p[0],10)+1) + '-' + p.slice(1).join('-'); }
+
+$('ny-open').onclick = async ()=>{
+  const s = await refresh();
+  const recs = toArr(localStorage.getItem('budgetRecurring2025'));
+  const years = new Set(); recs.forEach(r=> (r.targetMonths||[]).forEach(m=>years.add(parseInt(String(m).slice(0,4),10))));
+  const fromY = years.size ? Math.max(...years) : null;
+  const nLog = s.gx.length + s.cl.length + s.bl.length + s.lg.length;
+  showModal(`
+    <h3>📅 Növbəti ilə keçid</h3>
+    <p>Bu əməliyyat <b>${nLog}</b> log sətrini siləcək və il sonu qalığını yeni ilə köçürəcək.</p>
+    <ul>
+      <li>İl sonu qalığı: <b style="color:var(--text)">${fmt(s.balance)}</b> → yeni ilin <b>başlanğıc qalığı</b> olacaq</li>
+      <li>Silinəcək: Gəlir-Xərc logu (${s.gx.length + s.lg.length}), Kredit logu (${s.cl.length}), Borc logu (${s.bl.length})</li>
+      <li>Olduğu kimi qalacaq: <b style="color:var(--green)">${s.cr.length} kredit</b> və <b style="color:var(--green)">${s.tr.length} borc</b></li>
+    </ul>
+    <label class="chk"><input type="checkbox" id="ny-fc" checked>
+      <span>Büdcə proqnozunu da yeni ilə uyğunlaşdır: əl ilə əlavə edilmiş proqnoz qeydləri və düzəlişlər silinir${fromY ? ', aylıq şablonlar ' + fromY + ' → ' + (fromY+1) + ' ilinə köçürülür' : ''}.</span></label>
+    <div class="warn">Ehtiyat nüsxə avtomatik endiriləcək. Bu əməliyyatı geri qaytarmaq olmur (telefon və PC-də eyni anda tətbiq olunur).</div>
+    <div class="btns"><button class="btn btn-ghost" id="m-cancel">Ləğv et</button><button class="btn btn-amber" id="m-go">Bəli, yeni ilə keç</button></div>`);
+  $('m-cancel').onclick = closeModal;
+  countdown($('m-go'), 3, 'Bəli, yeni ilə keç');
+  $('m-go').onclick = async ()=>{
+    $('m-go').disabled = true;
+    const withForecast = $('ny-fc').checked;
+    try{
+      downloadBackup('il-sonu');
+      const bal = s.balance;
+      for(const k of LOG_KEYS) await setKey(k, '[]');
+      await setKey('mf_opening_bal', String(bal));
+      if(withForecast){
+        await setKey('budgetApp2025', '[]');
+        await setKey('budgetOverrides2025', '{}');
+        await setKey('budgetBalances2025', '{}');
+        const moved = recs.map(r=>Object.assign({}, r, { targetMonths:(r.targetMonths||[]).map(shiftYear) }));
+        await setKey('budgetRecurring2025', JSON.stringify(moved));
+      }
+      closeModal(); await refresh();
+      toast('Yeni ilə keçildi. Başlanğıc qalığı: ' + fmt(bal));
+    }catch(e){
+      console.error(e); closeModal(); toast('Xəta: ' + (e && e.message ? e.message : e));
+    }
+  };
+};
+
+// ─────────────────────────────────────────────
+// Datanı sıfırla — 3 mərhələ
+// ─────────────────────────────────────────────
+$('rs-open').onclick = async ()=>{
+  const s = await refresh();
+  const nLog = s.gx.length + s.cl.length + s.bl.length + s.lg.length;
+  // Mərhələ 1: nə silinəcək
+  showModal(`
+    <h3>⚠️ Datanı sıfırlamaq</h3>
+    <div class="warn">Bütün məlumat həmişəlik silinəcək.</div>
+    <ul>
+      <li><b>${nLog}</b> log sətri (Gəlir-Xərc, Kredit, Borc)</li>
+      <li><b>${s.cr.length}</b> kredit və <b>${s.tr.length}</b> borc</li>
+      <li>Büdcə proqnozu (qeydlər, şablonlar, düzəlişlər)</li>
+      <li>Başlanğıc qalığı (${fmt(s.ob)})</li>
+    </ul>
+    <p>Telefon və kompüter sinxron olduğundan silinmə <b>hər iki cihazda</b> tətbiq olunacaq. Davam etsəniz, əvvəlcə ehtiyat nüsxə faylı endiriləcək.</p>
+    <div class="btns"><button class="btn btn-ghost" id="m-cancel">Ləğv et</button><button class="btn btn-red" id="m-next">Başa düşdüm, davam et</button></div>`);
+  $('m-cancel').onclick = closeModal;
+  $('m-next').onclick = ()=>{
+    // Mərhələ 2: söz yaz
+    showModal(`
+      <h3>⚠️ Təsdiq: söz yazın</h3>
+      <p>Davam etmək üçün aşağıya <b style="color:var(--red)">SIFIRLA</b> sözünü yazın.</p>
+      <input type="text" id="m-word" autocomplete="off" placeholder="SIFIRLA" style="width:100%;margin-top:6px;">
+      <div class="btns"><button class="btn btn-ghost" id="m-cancel">Ləğv et</button><button class="btn btn-red" id="m-next2" disabled>Davam et</button></div>`);
+    $('m-cancel').onclick = closeModal;
+    $('m-word').addEventListener('input', ()=>{ $('m-next2').disabled = fold($('m-word').value) !== 'sifirla'; });
+    $('m-word').focus();
+    $('m-next2').onclick = ()=>{
+      // Mərhələ 3: son xəbərdarlıq, geri sayım
+      showModal(`
+        <h3>🛑 Son xəbərdarlıq</h3>
+        <div class="warn">Bu əməliyyatı geri qaytarmaq mümkün deyil. Silinəndən sonra data yalnız endirilən ehtiyat nüsxə faylından bərpa oluna bilər.</div>
+        <label class="chk"><input type="checkbox" id="m-ok"><span>Hər şeyin silinəcəyini başa düşürəm və ehtiyat nüsxənin endiriləcəyini bilirəm.</span></label>
+        <div class="btns"><button class="btn btn-ghost" id="m-cancel">Ləğv et</button><button class="btn btn-red" id="m-final" disabled>Hər şeyi sil</button></div>`);
+      $('m-cancel').onclick = closeModal;
+      let timerDone = false;
+      const upd = ()=>{ $('m-final').disabled = !(timerDone && $('m-ok').checked); };
+      $('m-ok').addEventListener('change', upd);
+      let n = 5; $('m-final').textContent = 'Hər şeyi sil (' + n + ')';
+      clearInterval(closeModal._t);
+      closeModal._t = setInterval(()=>{
+        n--; if(n <= 0){ clearInterval(closeModal._t); timerDone = true; $('m-final').textContent = 'Hər şeyi sil'; upd(); }
+        else $('m-final').textContent = 'Hər şeyi sil (' + n + ')';
+      }, 1000);
+      $('m-final').onclick = async ()=>{
+        $('m-final').disabled = true;
+        try{
+          downloadBackup('tam-sifirlama');
+          for(const k of ALL_KEYS) await setKey(k, null);
+          closeModal(); await refresh();
+          toast('Data sıfırlandı');
+        }catch(e){
+          console.error(e); closeModal(); toast('Xəta: ' + (e && e.message ? e.message : e));
+        }
+      };
+    };
+  };
+};
+
+refresh();
+window.addEventListener('sync-ok', refresh);
+</script>
+</body>
+</html>

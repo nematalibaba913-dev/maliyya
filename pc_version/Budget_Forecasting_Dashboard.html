@@ -5,6 +5,7 @@
 <script src="supabase-config.js"></script>
 <script src="mf-supabase.js"></script>
 <script src="mf-sync.js"></script>
+<script src="credit-plan.js"></script>
 <script src="sync.js?v=31"></script>
 <script src="backup.js?v=31"></script>
 
@@ -361,6 +362,7 @@
                     <div class="rec-sum-item"><span>Aylıq sabit xərc</span><strong style="color:var(--xerc)" id="recSumExp">0 ₼</strong></div>
                     <div class="rec-sum-item"><span>Fərq</span><strong style="color:#92400e" id="recSumNet">0 ₼</strong></div>
                 </div>
+                <div id="creditInfo" style="display:none;margin-bottom:12px;padding:10px 14px;border-radius:10px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;font-size:13px;"></div>
                 <div class="add-form recurring-style">
                     <span class="month-selector-label">Hansı aylara şamil edilsin?</span>
                     <div class="month-grid" id="monthSelector"></div>
@@ -418,7 +420,6 @@
                 <span> SS </span>
             </div>
 
-            <div class="reset-btn-inline" onclick="resetAllData()"><span> Sıfırla</span></div>
             <span style="margin-left: auto; color: #64748b; font-size: 13px;">Seçilib: <strong id="currentMonthLabel"></strong></span>
         </div>
     </div>
@@ -485,6 +486,8 @@
                 document.getElementById('manualStartBalance').value = dashBal;
             })();
             const daySelect = document.getElementById('recDay');
+            // init() bir neçə dəfə çağırıla bilər (DOMContentLoaded + gist-ready) — siyahılar təkrarlanmasın
+            daySelect.innerHTML = '<option value="" disabled selected>Gün</option>';
             for(let i=1; i<=31; i++) {
                 const opt = document.createElement('option');
                 opt.value = i; opt.textContent = i + "-i";
@@ -492,6 +495,7 @@
             }
             
             const monthGrid = document.getElementById('monthSelector');
+            monthGrid.innerHTML = '';
             monthsAz.forEach((m, index) => {
                 const lbl = document.createElement('label');
                 lbl.className = 'month-check';
@@ -503,6 +507,15 @@
             updateRecCategoryList();
             renderRecurringList();
             render();
+        }
+
+        // mf-sync başqa cihazdan yeni data çəkəndə çağırır: yaddaşdan yenidən oxu və yenilə
+        function loadData() {
+            try { data = JSON.parse(localStorage.getItem('budgetApp2025')) || []; } catch(e) { data = []; }
+            try { balances = JSON.parse(localStorage.getItem('budgetBalances2025')) || {}; } catch(e) { balances = {}; }
+            try { recurringData = JSON.parse(localStorage.getItem('budgetRecurring2025')) || []; } catch(e) { recurringData = []; }
+            try { recurringOverrides = JSON.parse(localStorage.getItem('budgetOverrides2025')) || {}; } catch(e) { recurringOverrides = {}; }
+            renderRecurringList(); render();
         }
 
         function closeAllMenus(e) {
@@ -566,8 +579,9 @@
             checkedBoxes.forEach(cb => {
                 let mIndex = parseInt(cb.value) - 1;
                 let monthKey = `${currentYear}-${String(mIndex + 1).padStart(2, '0')}`;
-                targetMonths.push(monthKey);
+                if(!targetMonths.includes(monthKey)) targetMonths.push(monthKey);
             });
+            targetMonths.sort();
 
             recurringData.push({ 
                 id: Date.now(), type: recType, day: parseInt(day), 
@@ -630,6 +644,17 @@
                 else listXerc.appendChild(div);
             });
 
+            const ci = creditItems();
+            const ciEl = document.getElementById('creditInfo');
+            if(ciEl){
+                if(ci.length){
+                    const names = [...new Set(ci.map(c => c.name))];
+                    const perMonth = {}; ci.forEach(c => perMonth[c.monthKey] = (perMonth[c.monthKey]||0) + c.amount);
+                    const maxM = Math.max(...Object.values(perMonth));
+                    ciEl.style.display = 'block';
+                    ciEl.innerHTML = `💳 Kreditlər avtomatik əlavə olunur (${new Date().getFullYear()}): <b>${names.length} kredit</b>, ayda ən çoxu <b>${formatMoney(maxM)}</b>. Məbləğləri Kreditlər səhifəsindən dəyişin; ayrı-ayrı ayı cədvəldə ••• ilə düzəldə bilərsiniz.`;
+                } else ciEl.style.display = 'none';
+            }
             document.getElementById('recSumInc').textContent = formatMoney(totalInc);
             document.getElementById('recSumExp').textContent = formatMoney(totalExp);
             const diff = totalInc - totalExp;
@@ -686,10 +711,17 @@
             recurringData.forEach(rec => {
                 if(rec.targetMonths) rec.targetMonths.forEach(tm => m.add(tm));
             });
+            creditItems().forEach(it => m.add(it.monthKey));   // Kreditlərin aylıq ödənişləri (cari il)
             m.add(getCurrentMonthKey()); 
             return Array.from(m).sort(); 
         }
         
+        // Kreditlər səhifəsindəki aylıq ödənişlər — cari il üzrə avtomatik
+        function creditItems() {
+            try { return window.MFCreditPlan ? MFCreditPlan.items(new Date().getFullYear()) : []; }
+            catch(e) { return []; }
+        }
+
         function getCombinedDataForMonth(monthKey) {
             let manualItems = data.filter(i => i.monthYear === monthKey);
             const [year, month] = monthKey.split('-').map(Number);
@@ -711,6 +743,17 @@
                 generatedRecurring.push({ 
                     ...rec, date: dateStr, monthYear: monthKey, note: finalNote, 
                     isRecurring: true, amount: finalAmount, originalId: rec.id
+                });
+            });
+            creditItems().filter(c => c.monthKey === monthKey).forEach(c => {
+                const overrideKey = `${c.id}_${monthKey}`;
+                const isOverridden = recurringOverrides.hasOwnProperty(overrideKey);
+                let finalNote = `(Kredit: ${c.name})` + (isOverridden ? ' [Düzəliş]' : '');
+                generatedRecurring.push({
+                    id: c.id, type: 'xerc', category: 'Kredit ödənişi', day: c.day,
+                    date: c.date, monthYear: monthKey, note: finalNote,
+                    isRecurring: true, isCredit: true,
+                    amount: isOverridden ? recurringOverrides[overrideKey] : c.amount, originalId: c.id
                 });
             });
             return [...manualItems, ...generatedRecurring];
@@ -861,15 +904,6 @@
             render();
         }
         function saveEndBalance(m, val) { if (m === 'all') return; if (!balances[m]) balances[m] = {}; balances[m].end = val; localStorage.setItem('budgetBalances2025', JSON.stringify(balances)); }
-        function resetAllData() {
-            if(confirm('DİQQƏT! Bütün məlumatlar silinəcək. Əminsiniz?')) {
-                localStorage.removeItem('budgetApp2025'); 
-                localStorage.removeItem('budgetBalances2025'); 
-                localStorage.removeItem('budgetRecurring2025');
-                localStorage.removeItem('budgetOverrides2025');
-                data = []; balances = {}; recurringData = []; recurringOverrides = {}; location.reload();
-            }
-        }
         const gelirCategories = ["Əməkhaqqı","Təqaüd","Mükafat","Məzuniyyət / Ezam","ƏDV/CashBack","Borc Qaytarması","Satış","Əlavə Gəlir","Kredit xətti","Borc alınması","Kredit alınması"];
         const xercCategories = ["Kredit ödənişi","Komissiya","Taksit ödənişi","Borc qaytarması","Kirayə","Komunnal","Kontur","İnternet","Təhsil","Siqaret","Yol","Ərzaq","Restoran","Rüsum","Təmir tikinti","Tibb","Tibb (Ana)","Ev (Quba)","İdman","Hobby","Hədiyyə","Geyim","Əşya","Digər","Borc verilməsi","Toy","Əyləncə","Bərbər","Təmizlik vasitələri","İş üçün","Səyahət","Heyvan məhsulları","Bağ"];
         function formatDateShort(iso) { const d = new Date(iso); return `${String(d.getDate()).padStart(2, '0')} ${monthsAz[d.getMonth()]}`; }

@@ -355,7 +355,15 @@
     }
   }
 
-  window.MFSync = { now: cycle };
+  // write(key, value|null): LS + səhifələrin oxuduğu IndexedDB yerlərinə yaz və serverə göndərilməli kimi işarələ
+  window.MFSync = {
+    now: cycle,
+    keys: Object.keys(KEYS),
+    write: function (key, value) {
+      if (!KEYS[key]) return Promise.reject(new Error('Naməlum açar: ' + key));
+      return writeLocal(key, value).then(function () { markDirty(key); });
+    }
+  };
 
   function start() {
     cycle();

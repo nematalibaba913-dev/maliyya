@@ -12,6 +12,7 @@
 <script src="supabase-config.js"></script>
 <script src="mf-supabase.js"></script>
 <script src="mf-sync.js"></script>
+<script src="credit-plan.js"></script>
 <script src="db.js"></script>
 
 <meta charset="UTF-8">
@@ -487,22 +488,6 @@ body.dark .cat-dropdown-list{background:var(--surface);border-color:var(--border
   </div>
 </div>
 
-<!-- BAŞLANĞIC QALIĞI MODAL -->
-<div class="modal-overlay" id="balance-modal">
-  <div class="modal-box">
-    <h3>💰 Başlanğıc Qalığı</h3>
-    <p>Hesabın başlanğıc balansını daxil edin. Bütün hesablamalar bu rəqəm əsasında aparılacaq.</p>
-    <div class="modal-input-wrap">
-      <input class="modal-input" type="number" id="balance-input" placeholder="0.00" min="0" step="0.01"/>
-      <span>₼</span>
-    </div>
-    <div class="modal-btns">
-      <button class="modal-cancel" onclick="closeBalanceModal()">Ləğv et</button>
-      <button class="modal-ok" onclick="saveBalance()">Saxla</button>
-    </div>
-  </div>
-</div>
-
 <!-- APP -->
 <div id="app">
   <div class="topbar">
@@ -514,7 +499,6 @@ body.dark .cat-dropdown-list{background:var(--surface);border-color:var(--border
       </div>
     </div>
     <div class="topbar-right">
-      <button class="gear-btn" title="Başlanğıc qalığı" onclick="openBalanceModal()">⚙️</button>
       <input type="text" id="f-search" placeholder="🔍 Axtar..." oninput="applyFilters()"
         style="border:1.5px solid var(--border);border-radius:8px;padding:6px 12px;font-family:'Nunito',sans-serif;font-size:13px;color:var(--text);background:var(--surface2);outline:none;width:180px;transition:border .2s,box-shadow .2s;"
         onfocus="this.style.borderColor='#2563eb';this.style.boxShadow='0 0 0 3px rgba(37,99,235,.12)'"
@@ -1129,34 +1113,7 @@ function applyFilters(){
 // ── BAŞLANĞIC QALIĞI ───────────────────────────
 let openingBalance = parseFloat(localStorage.getItem('mf_opening_bal') || '0') || 0;
 
-function openBalanceModal(){
-  document.getElementById('balance-input').value = openingBalance || '';
-  document.getElementById('balance-modal').classList.add('show');
-  setTimeout(()=>document.getElementById('balance-input').focus(), 100);
-}
-function closeBalanceModal(){
-  document.getElementById('balance-modal').classList.remove('show');
-}
-function saveBalance(){
-  const v = parseFloat(document.getElementById('balance-input').value) || 0;
-  openingBalance = v;
-  localStorage.setItem('mf_opening_bal', v);
-  closeBalanceModal();
-  // Düymə üzərindəki mətni yenilə
-  // Düymə simvolu dəyişmir — həmişə 🔑
-  renderKPI();
-  toast('Başlanğıc qalığı saxlandı: ' + fmt(v), 'ok');
-}
-// Keyboard: Enter → saxla, Esc → ləğv
-document.addEventListener('keydown', e => {
-  if(!document.getElementById('balance-modal').classList.contains('show')) return;
-  if(e.key === 'Enter') saveBalance();
-  if(e.key === 'Escape') closeBalanceModal();
-});
-// Modal kənara klikləndikdə bağla
-document.getElementById('balance-modal').addEventListener('click', function(e){
-  if(e.target === this) closeBalanceModal();
-});
+// Başlanğıc qalığı artıq Parametrlər səhifəsindən dəyişdirilir (Settings.html)
 
 // ── KPI ────────────────────────────────────────
 function renderKPI(){
@@ -1202,6 +1159,9 @@ function renderKPI(){
     let allMonths = new Set();
     budgetData.forEach(i => i.monthYear && allMonths.add(i.monthYear));
     recurringData.forEach(rec => { if(rec.targetMonths) rec.targetMonths.forEach(m => allMonths.add(m)); });
+    // Kreditlərin aylıq ödənişləri (cari il) — Proqnoz səhifəsi ilə eyni
+    const crPlan = window.MFCreditPlan ? MFCreditPlan.items(new Date().getFullYear()) : [];
+    crPlan.forEach(c => allMonths.add(c.monthKey));
     const months = Array.from(allMonths).filter(Boolean).sort();
 
     if(months.length){
@@ -1221,8 +1181,15 @@ function renderKPI(){
         });
       });
 
+      // Kredit ödənişləri (xərc)
+      crPlan.forEach(c => {
+        const k = c.id + '_' + c.monthKey;
+        fExp += recurringOverrides.hasOwnProperty(k) ? recurringOverrides[k] : c.amount;
+      });
+
       // Gəlir və xərc üçün ayrıca son tarix
       let lastIncDate = '', lastExpDate = '';
+      crPlan.forEach(c => { if(c.date > lastExpDate) lastExpDate = c.date; });
 
       // Manual qeydlər — date sahəsi var
       budgetData.forEach(i => {
