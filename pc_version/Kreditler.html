@@ -128,8 +128,18 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min
 .chart-title{font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text);}
 .chart-wrap{position:relative;height:220px;}
 .chart-sub{font-size:12px;color:var(--muted);margin:-8px 0 12px;}
-.an-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
-@media(max-width:900px){.an-kpis{grid-template-columns:1fr 1fr;}}
+.an-overall{padding:18px 20px;margin-bottom:12px;}
+.ov-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.ov-pct{font-family:'DM Mono',monospace;font-size:34px;font-weight:700;color:var(--green);line-height:1;}
+.ov-bar{display:flex;height:22px;border-radius:8px;overflow:hidden;background:var(--surface2);gap:2px;}
+.ov-paid{background:var(--green);border-radius:8px 0 0 8px;min-width:0;transition:width .4s;}
+.ov-rem{background:rgba(239,68,68,.28);flex:1;border-radius:0 8px 8px 0;}
+.ov-leg{display:flex;justify-content:space-between;gap:12px;margin-top:12px;flex-wrap:wrap;}
+.ov-leg div{font-size:13px;}
+.ov-leg b{font-family:'DM Mono',monospace;font-size:17px;display:block;margin-top:2px;}
+.ov-note{font-size:11px;color:var(--muted);margin-top:10px;}
+.an-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+@media(max-width:700px){.an-kpis{grid-template-columns:1fr 1fr;}}
 .an-kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;}
 .an-kpi .k-l{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;}
 .an-kpi .k-v{font-size:22px;font-weight:700;font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:4px;}
@@ -198,6 +208,7 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min
 
   <!-- TƏHLİL -->
   <div id="section-charts" style="display:none;">
+    <div class="chart-section an-overall" id="an-overall"></div>
     <div class="an-kpis" id="an-kpis"></div>
     <div class="an-insights" id="an-insights"></div>
 
@@ -696,10 +707,21 @@ function renderCharts(){
   const lastEnd    = activeRows.map(r=>r.end).filter(Boolean).sort((a,b)=>a-b).pop();
   const nowM = new Date(); nowM.setDate(1); nowM.setHours(0,0,0,0);
   const monthsLeft = lastEnd ? Math.max(0, (lastEnd.getFullYear()-nowM.getFullYear())*12 + lastEnd.getMonth()-nowM.getMonth() + 1) : 0;
-  const pctAll = totPayable>0 ? Math.round(totPaid/totPayable*100) : 0;
+  // Ümumi irəliləyiş: qalıq = aylıq ödəniş × qalan ay (hər aktiv kredit üzrə), ödənilmiş = real ödənişlər
+  const remByMonths = activeRows.reduce((a,r)=>a + (r.cr.monthly||0)*r.cv.remainMonths, 0);
+  const ovTotal = totPaid + remByMonths;
+  const pctAll = ovTotal>0 ? totPaid/ovTotal*100 : 0;
+  const monthsPaidAll = rows.reduce((a,r)=>a+r.cv.paidMonths,0);
+  const monthsLeftAll = activeRows.reduce((a,r)=>a+r.cv.remainMonths,0);
+  document.getElementById('an-overall').innerHTML =
+    `<div class="ov-top"><div><div class="chart-title" style="margin-bottom:6px">Ümumi irəliləyiş</div><div class="ov-pct">${pctAll.toFixed(1).replace(/\.0$/,'')}%</div></div>
+       <div style="font-size:12px;color:var(--muted);text-align:right">${monthsPaidAll} ödəniş edilib · ${monthsLeftAll} ödəniş qalıb<br>(bütün kreditlər üzrə)</div></div>
+     <div class="ov-bar"><div class="ov-paid" style="width:${pctAll}%"></div><div class="ov-rem"></div></div>
+     <div class="ov-leg"><div><span class="an-dot" style="background:var(--green)"></span>Ödənilib<b style="color:var(--green)">${fmt(totPaid)}</b></div>
+       <div style="text-align:right"><span class="an-dot" style="background:rgba(239,68,68,.55)"></span>Qalıb<b style="color:var(--red)">${fmt(remByMonths)}</b></div></div>
+     <div class="ov-note">Qalıb = aylıq ödəniş × qalan ay (hər kredit üzrə cəmlənib).</div>`;
   const kpi = (l,v,sub,color)=>`<div class="an-kpi"><div class="k-l">${l}</div><div class="k-v" style="color:${color||'var(--text)'}">${v}</div><div class="k-s">${sub}</div></div>`;
   document.getElementById('an-kpis').innerHTML =
-    kpi('Ümumi irəliləyiş', pctAll+'%', fmt(totPaid)+' / '+fmt(totPayable), 'var(--green)') +
     kpi('Ümumi faiz xərci', fmt(totInt), totTaken>0 ? 'alınan məbləğin '+Math.round(totInt/totTaken*100)+'%-i' : '—', 'var(--amber)') +
     kpi('Qalan faiz hissəsi', fmt(totIntLeft), 'hələ ödəniləcək faiz', 'var(--red)') +
     kpi('Borcsuz olma', lastEnd ? monLabel(lastEnd) : '—', lastEnd ? (monthsLeft+' ay qalıb') : 'aktiv kredit yoxdur', 'var(--blue)');
