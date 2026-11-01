@@ -77,17 +77,7 @@
     <div class="header">
       <div>
         <h1>Gəlir & Xərc Log</h1>
-        <div class="sub" id="last-update"></div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-        <button class="btn btn-primary" onclick="applyPaste()">Yadda saxla</button>
-        <a class="btn" style="background:#2f9e44;color:#e8fff2;border:1px solid #1b4332;box-shadow:0 8px 20px rgba(47,158,68,.35);text-decoration:none;" href="https://docs.google.com/spreadsheets/d/10NszYfXxz8dbsxu_2XadPHYa3GNaAwRiQm3dkmJI4aE/edit?usp=sharing" target="_blank" rel="noopener">Google Sheet ↗</a>
-      </div>
-    </div>
-
-    <div class="card" style="margin-bottom:14px;">
-      <div class="muted" style="margin-bottom:8px;">Yapışıdr</div>
-      <textarea id="paste-box" placeholder="Tarix[TAB]Əməliyyat[TAB]Kateqoriya[TAB]Qeyd[TAB]Məbləğ..."></textarea>
     </div>
 
     <div class="card">
@@ -126,7 +116,6 @@
         </thead>
         <tbody id="tbody"></tbody>
       </table>
-      <div class="muted" id="hint"></div>
     </div>
   </div>
 
@@ -149,28 +138,6 @@
         Tarix: r.Tarix||'', Emeliyyat: r.Emeliyyat||'',
         Kateqoriya: r.Kateqoriya||'', Qeyd: r.Qeyd||'', Mebleg: r.Mebleg||''
       };
-    }
-
-    function parsePasted(text){
-      const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
-      if(!lines.length) return [];
-      // delimiter deteksiya: tab varsa tab, yoxsa ;
-      const first = lines[0];
-      const delim = first.includes('\t') ? '\t' : first.includes(';') ? ';' : ',';
-      const rows = [];
-      lines.forEach((line, idx)=>{
-        const cells = line.split(delim).map(x=>x.trim());
-        if(cells.length < 5) return;
-        if(idx===0 && cells[0].toLowerCase().includes('tarix')) return; // header skip
-        rows.push({
-          Tarix: cells[0]||'',
-          Emeliyyat: cells[1]||'',
-          Kateqoriya: cells[2]||'',
-          Qeyd: cells[3]||'',
-          Mebleg: cells[4]||''
-        });
-      });
-      return rows;
     }
 
     function render(){
@@ -202,7 +169,6 @@
         `).join('');
       }
       document.getElementById('summary').textContent = `Sətir sayı: ${indexed.length}`;
-      document.getElementById('hint').textContent = 'Mənbə:IndexedDB';
     }
 
     async function saveCache(){
@@ -230,24 +196,6 @@
           if(vls){ const parsed = JSON.parse(vls); if(Array.isArray(parsed)) ROWS = parsed; }
         }catch(e){ console.warn('LS load', e); }
       }
-      document.getElementById('last-update').textContent = ROWS.length ? `Son əlavə: (cache)` : '';
-    }
-
-    async function applyPaste(){
-      const text = document.getElementById('paste-box').value || '';
-      const rows = parsePasted(text);
-      if(!rows.length){
-        document.getElementById('summary').textContent = 'Heç bir sətir oxunmadı. Dilim: tab/;/, yoxlayın.';
-        return;
-      }
-      ROWS = (ROWS || []).concat(rows); // ardına əlavə et, log böyüyür
-      editIndex = -1;
-      document.getElementById('edit-form').style.display='none';
-      await saveCache();
-      render();
-      document.getElementById('summary').textContent = `Yadda saxlanıldı · Ümumi sətir sayı: ${ROWS.length}`;
-      const now = new Date();
-      document.getElementById('last-update').textContent = `Son əlavə: ${fmtDate(now)} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
     }
 
     function startEdit(idx){
