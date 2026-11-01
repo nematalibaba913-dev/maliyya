@@ -131,10 +131,15 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
 .home-fab span{display:block;width:20px;height:2px;background:#e8eaf6;border-radius:2px;}
 
 /* Card grid — 3 sütun */
-#card-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start;}
-@media(max-width:900px){#card-list{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:560px){#card-list{grid-template-columns:1fr;}}
+#card-list .tr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start;}
+@media(max-width:900px){#card-list .tr-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:560px){#card-list .tr-grid{grid-template-columns:1fr;}}
 #card-list .tr-card{margin-bottom:0;}
+.grp-title{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;margin:18px 0 10px;padding:8px 12px;border-radius:10px;}
+.grp-title:first-child{margin-top:0;}
+.grp-title.green{background:rgba(63,185,80,.12);color:var(--green);}
+.grp-title.red{background:rgba(248,81,73,.12);color:var(--red);}
+.grp-title small{font-weight:600;opacity:.85;}
 </style>
 <link rel="stylesheet" href="mf-mobile.css">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
@@ -466,7 +471,16 @@ function renderAll(){
   if(!active.length){
     list.innerHTML='<div style="text-align:center;color:var(--muted);padding:24px;font-size:13px;">Hələ aktiv əməliyyat yoxdur</div>';
   } else {
-    list.innerHTML = active.map(t=>buildCard(t,false)).join('');
+    const isPosT = t => t.type === 'borc-aldim' || t.type === 'mene-qaytardi';
+    const groupHtml = (items, cls, title) => {
+      if(!items.length) return '';
+      const rem = items.filter(t=>!t.done).reduce((a,t)=>a + (t.amount - (t.paid||0)), 0);
+      return `<div class="grp-title ${cls}"><span>${title} · ${items.length}</span><small>Qalıq: ${fmt(+rem.toFixed(2))}</small></div>` +
+             `<div class="tr-grid">${items.map(t=>buildCard(t,false)).join('')}</div>`;
+    };
+    list.innerHTML =
+      groupHtml(active.filter(isPosT), 'green', '🟢 Aldığım borclar') +
+      groupHtml(active.filter(t=>!isPosT(t)), 'red', '🔴 Verdiyim borclar');
   }
 
   renderLog();
