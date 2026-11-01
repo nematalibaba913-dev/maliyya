@@ -196,6 +196,7 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min
     <div class="frow"><label class="flbl">Müddət (ay)</label><input class="finp" id="a-term" type="number" value="36"></div>
     <div class="frow"><label class="flbl">İllik faiz (%)</label><input class="finp" id="a-rate" type="number" step="0.01"></div>
     <div class="frow"><label class="flbl">Başlama tarixi</label><input class="finp" id="a-start" type="date"></div>
+    <div class="frow"><label class="flbl">Ödənilmiş ayların sayı</label><input class="finp" id="a-paid" type="number" min="0" step="1" value="0"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeAddModal()">Ləğv</button>
       <button class="btn-ok" onclick="saveNewCredit()">Əlavə Et</button>
@@ -516,6 +517,7 @@ function openAddModal(){
   document.getElementById('a-term').value='36';
   document.getElementById('a-rate').value='';
   document.getElementById('a-start').value=fmtDateInput(new Date());
+  document.getElementById('a-paid').value='0';
   document.getElementById('add-modal').classList.add('show');
 }
 function closeAddModal(){ document.getElementById('add-modal').classList.remove('show'); }
@@ -528,6 +530,8 @@ function saveNewCredit(){
   const rate   = parseFloat(document.getElementById("a-rate").value)||0;
   const start  = document.getElementById("a-start").value;
   if(!name||!amount||!monthly||!start){ toast("Bütün sahələri doldurun","err"); return; }
+  const paidN  = Math.max(0, parseInt(document.getElementById("a-paid").value)||0);
+  if(paidN > term){ toast("Ödənilmiş ay müddətdən çox ola bilməz","err"); return; }
   const endD = new Date(start); endD.setMonth(endD.getMonth()+term);
   const cr = {
     id: "cr_"+Date.now(),
@@ -539,6 +543,13 @@ function saveNewCredit(){
     color: ['#3b82f6','#10b981','#f59e0b','#7c3aed','#ef4444'][credits.length%5],
     payments: []
   };
+  // Əvvəlki ödənilmiş aylar: hər biri aylıq məbləğlə, başlama tarixindən hər ay (loga yazılmır)
+  for(let i=1;i<=paidN;i++){
+    const sd = new Date(start);
+    const pd = new Date(Date.UTC(sd.getUTCFullYear(), sd.getUTCMonth()+i, 1));
+    pd.setUTCDate(Math.min(sd.getUTCDate(), new Date(Date.UTC(pd.getUTCFullYear(), pd.getUTCMonth()+1, 0)).getUTCDate()));
+    cr.payments.push({ date: fmtDateInput(pd), amount: monthly });
+  }
   credits.unshift(cr);
   saveState();
   addLog({ id:'log_'+Date.now(), date:start, type:'Gəlir', note: name+' - kredit alındı', amount, creditId: cr.id });
