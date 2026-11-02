@@ -23,8 +23,9 @@
 [data-theme=dark]{--bg:#0d1117;--surface:#161b22;--surface2:#21262d;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--dim:#484f58;--green:#3fb950;--red:#f85149;--blue:#58a6ff;--amber:#d29922;--purple:#a371f7;}
 body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min-height:100vh;padding-bottom:100px;transition:background .2s,color .2s;}
 /* TOPBAR */
-.topbar{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;height:54px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
-.topbar-title{font-size:16px;font-weight:700;color:var(--text);}
+.topbar{position:static;background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;height:56px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;}
+.topbar-title{font-size:17px;font-weight:700;color:var(--text);text-align:center;letter-spacing:-.2px;}
+.topbar > :last-child{justify-self:end;}
 .topbar-date{font-size:11px;color:var(--muted);}
 .btn-add-top{background:var(--blue);color:#fff;border:none;border-radius:9px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;}
 /* CONTENT */
@@ -178,10 +179,8 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min
 <body>
 
 <div class="topbar">
-  <div>
-    <div class="topbar-title">💳 Kreditlər</div>
-    <div class="topbar-date" id="today-date"></div>
-  </div>
+  <div></div>
+  <div class="topbar-title">Kreditlər<span class="topbar-date" id="today-date" style="display:none"></span></div>
   <button class="btn-add-top" onclick="openAddModal()" title="Yeni kredit" aria-label="Yeni kredit" style="font-size:22px;line-height:1;font-weight:600;min-width:44px;">+</button>
 </div>
 

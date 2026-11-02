@@ -21,8 +21,9 @@
 :root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--green:#3fb950;--red:#f85149;--blue:#58a6ff;--amber:#d29922;--purple:#a371f7;--teal:#2dd4bf;}
 [data-theme='light']{--bg:#f0f4f8;--surface:#ffffff;--border:#dde3ef;--text:#111827;--muted:#6b7fa8;--green:#10b981;--red:#f43f5e;--blue:#3b82f6;--amber:#f59e0b;--purple:#7c3aed;--teal:#0d9488;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding-bottom:120px;}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
-.topbar-title{font-size:16px;font-weight:700;}
+.topbar{position:static;background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;height:56px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;}
+.topbar-title{font-size:17px;font-weight:700;color:var(--text);text-align:center;letter-spacing:-.2px;}
+.topbar > :last-child{justify-self:end;}
 .back-btn{background:none;border:none;color:var(--blue);font-size:15px;cursor:pointer;}
 .content{width:100%;max-width:1200px;margin:0 auto;padding:16px 24px;}
 
@@ -147,9 +148,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
 </head>
 <body>
 <div class="topbar">
-  <button class="back-btn" style="color:#176BEF;" onclick="history.back()">‹ Geri</button>
+  <div></div>
   <div class="topbar-title">Borclar</div>
-  <div style="width:50px"></div>
+  <div></div>
 </div>
 
 <div class="content" style="max-width:1200px;margin:0 auto;padding:16px 24px;">
