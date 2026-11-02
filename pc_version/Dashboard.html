@@ -512,12 +512,7 @@ body.dark .cat-dropdown-list{background:var(--surface);border-color:var(--border
   <div class="topbar">
     <div></div>
     <div class="topbar-title">Dashboard</div>
-    <div class="topbar-right">
-      <input type="text" id="f-search" placeholder="🔍 Axtar..." oninput="applyFilters()"
-        style="border:1.5px solid var(--border);border-radius:8px;padding:6px 12px;font-family:'Nunito',sans-serif;font-size:13px;color:var(--text);background:var(--surface2);outline:none;width:180px;transition:border .2s,box-shadow .2s;"
-        onfocus="this.style.borderColor='#2563eb';this.style.boxShadow='0 0 0 3px rgba(37,99,235,.12)'"
-        onblur="this.style.borderColor='';this.style.boxShadow=''">
-    </div>
+    <div></div>
   </div>
 
   <div class="content">
@@ -1096,7 +1091,7 @@ function updateSlicerUI(){
 }
 
 function applyFilters(){
-  const q = (document.getElementById('f-search').value||'').toLowerCase();
+  const q = '';   // axtarış ləğv edilib
   FLT = ALL.filter(r => {
     // Ay filteri
     if(selMonths.size > 0){
