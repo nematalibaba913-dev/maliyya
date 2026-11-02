@@ -244,6 +244,10 @@ html,body{
 
 .set-btn{flex-shrink:0;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;text-decoration:none;color:var(--muted);background:var(--surface);border:1px solid var(--border);transition:all .2s;}
 .set-btn:hover{color:var(--text);border-color:var(--blue);transform:rotate(30deg);}
+/* Ikonlar: tək tonlu, minimalist */
+.card .card-ico,.card.b .card-ico,.card.a .card-ico,.card.g .card-ico,.card.t .card-ico,.card.p .card-ico{background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);opacity:.9;}
+[data-theme=light] .card .card-ico,[data-theme=light] .card.b .card-ico,[data-theme=light] .card.a .card-ico,[data-theme=light] .card.g .card-ico,[data-theme=light] .card.t .card-ico{background:rgba(0,0,0,0.04);}
+.card:hover .card-ico{transform:none;}
 .hist-btn{flex-shrink:0;width:76px;height:38px;border-radius:19px;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:600;text-decoration:none;color:var(--muted);background:var(--surface);border:1px solid var(--border);transition:all .2s;white-space:nowrap;}
 .hist-btn span{font-size:13px;}
 .hist-btn:hover{color:var(--text);border-color:var(--blue);}
@@ -282,7 +286,7 @@ html,body{
 
   <div class="cards">
     <a class="card b" href="Dashboard.html">
-      <div class="card-ico">📊</div>
+      <div class="card-ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg></div>
       <div class="card-txt">
         <div class="card-title">Dashboard</div>
         <div class="card-desc">Analiz, qrafiklər və əməliyyat jurnalı</div>
@@ -290,7 +294,7 @@ html,body{
       <div class="card-arr">›</div>
     </a>
     <a class="card a" href="Budget_Forecasting_Dashboard.html">
-      <div class="card-ico">🎯</div>
+      <div class="card-ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/></svg></div>
       <div class="card-txt">
         <div class="card-title">Büdcə Proqnozu</div>
         <div class="card-desc">Gələcək planlaması və təhlili</div>
@@ -324,7 +328,7 @@ html,body{
 
   <div class="cards">
     <a class="card g" href="Kreditler.html">
-      <div class="card-ico">🏦</div>
+      <div class="card-ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/><path d="M6.5 15h4"/></svg></div>
       <div class="card-txt">
         <div class="card-title">Kreditlər</div>
         <div class="card-desc">Kredit ödənişləri və öhdəlikləri</div>
@@ -332,7 +336,7 @@ html,body{
       <div class="card-arr">›</div>
     </a>
     <a class="card t" href="Transfer.html">
-      <div class="card-ico">🤝</div>
+      <div class="card-ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h12l-3-3"/><path d="M17 17H5l3 3"/></svg></div>
       <div class="card-txt">
         <div class="card-title">Borclar</div>
         <div class="card-desc">Borc öhdəlikləri</div>
