@@ -38,9 +38,11 @@
 
 /* Ümumi Gəlir / Xərc kartları: başlıq yuxarıda, məbləğ və alt yazı şaquli ortada */
 .kpi-center{display:flex;flex-direction:column;}
-.kpi-pair{margin:auto 0;display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;}
+.kpi-pair{margin:auto 0;display:flex;align-items:flex-start;gap:10px;flex-wrap:nowrap;width:100%;}
+.kpi-pair .kpi-slash{flex:1;text-align:center;}
+.kpi-pair-r{text-align:right;}
 .kpi-pair .kpi-val{margin-bottom:0 !important;}
-.kpi-slash{font-size:26px;line-height:1;font-weight:300;opacity:.55;}
+.kpi-slash{font-size:26px;line-height:1;font-weight:300;color:rgba(255,255,255,.55);}
 .kpi-pair-r .kpi-xar{font-size:12px;font-weight:600;color:rgba(255,255,255,.72);margin-top:4px;}
 
 
@@ -520,16 +522,16 @@ body.dark .cat-dropdown-list{background:var(--surface);border-color:var(--border
 
   <div class="content">
 
-    <!-- AY SLİCER -->
-    <div class="filter-section">
-      <div class="slicer-wrap" id="month-slicer"></div>
-    </div>
-
     <!-- MASTER GRID: filtr + kpi + kredit kartı -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto;gap:12px;margin-bottom:12px;align-items:stretch;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr auto;gap:12px;margin-bottom:12px;align-items:stretch;">
+
+      <!-- AY SLİCER — Gəlir/Xərc kartlarının üstündə, ikisinin eni qədər -->
+      <div class="filter-section" style="grid-column:2/4;grid-row:1;margin-bottom:0;display:flex;flex-direction:column;justify-content:center;">
+        <div class="slicer-wrap" id="month-slicer"></div>
+      </div>
 
       <!-- Kredit kartı — sıra 1-2, sütun 3 -->
-      <div style="grid-column:1;grid-row:1;display:flex;align-items:stretch;">
+      <div style="grid-column:1;grid-row:1/3;display:flex;align-items:stretch;">
         <div class="kpi blue" id="kpi-bal" style="width:100%;display:flex;flex-direction:column;">
           <!-- Yuxarı: başlıq sol, boş sağ -->
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -557,7 +559,7 @@ body.dark .cat-dropdown-list{background:var(--surface);border-color:var(--border
       </div>
 
       <!-- Ümumi Gəlir -->
-      <div class="kpi green kpi-gelir-card kpi-center" style="grid-column:2;grid-row:1;align-self:start;padding:12px 16px;">
+      <div class="kpi green kpi-gelir-card kpi-center" style="grid-column:2;grid-row:2;padding:12px 16px;">
         <div class="kpi-top" style="margin-bottom:6px;"><span class="kpi-label">Ümumi Gəlir</span><div class="kpi-ico">▲</div></div>
         <div class="kpi-pair">
           <div class="kpi-val" id="k-income" style="font-size:26px;">—</div>
@@ -567,7 +569,7 @@ body.dark .cat-dropdown-list{background:var(--surface);border-color:var(--border
       </div>
 
       <!-- Ümumi Xərc -->
-      <div class="kpi red kpi-xerc-card kpi-center" style="grid-column:3;grid-row:1;align-self:start;padding:12px 16px;">
+      <div class="kpi red kpi-xerc-card kpi-center" style="grid-column:3;grid-row:2;padding:12px 16px;">
         <div class="kpi-top" style="margin-bottom:6px;"><span class="kpi-label">Ümumi Xərc</span><div class="kpi-ico">▼</div></div>
         <div class="kpi-pair">
           <div class="kpi-val" id="k-expense" style="font-size:26px;">—</div>
