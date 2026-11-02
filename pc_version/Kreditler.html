@@ -723,7 +723,7 @@ function renderCharts(){
   document.getElementById('an-kpis').innerHTML =
     kpi('Ümumi faiz xərci', fmt(totInt), totTaken>0 ? 'alınan məbləğin '+Math.round(totInt/totTaken*100)+'%-i' : '—', 'var(--amber)') +
     kpi('Qalan faiz hissəsi', fmt(totIntLeft), 'hələ ödəniləcək faiz', 'var(--red)') +
-    kpi('Borcsuz olma', lastEnd ? monLabel(lastEnd) : '—', lastEnd ? (monthsLeft+' ay qalıb') : 'aktiv kredit yoxdur', 'var(--blue)');
+    kpi('Borcsuz olma', lastEnd ? (String(lastEnd.getDate()).padStart(2,'0')+'.'+String(lastEnd.getMonth()+1).padStart(2,'0')+'.'+lastEnd.getFullYear()) : '—', lastEnd ? (monthsLeft+' ay qalıb') : 'aktiv kredit yoxdur', 'var(--blue)');
 
   // ── Qısa nəticələr ──
   const ins = [];
