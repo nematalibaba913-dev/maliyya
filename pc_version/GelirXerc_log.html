@@ -181,6 +181,8 @@
       if(window.BudgetDB){
         try{ await BudgetDB.setBudget(STORE_KEY, JSON.stringify(ROWS)); }catch(e){ console.warn('IDX save', e); }
       }
+      // Bütün saxlama yerlərini (settings + budget + LS) yenilə və serverə göndər — Dashboard settings-dən oxuyur
+      if(window.MFSync){ try{ await MFSync.write(STORE_KEY, JSON.stringify(ROWS)); }catch(e){ console.warn('sync write', e); } }
     }
 
     async function loadCache(){
@@ -221,6 +223,7 @@
     async function saveEdit(){
       if(editIndex < 0) return;
       ROWS[editIndex] = {
+        ...(ROWS[editIndex]||{}),
         Tarix: document.getElementById('f-date').value,
         Emeliyyat: document.getElementById('f-type').value,
         Kateqoriya: document.getElementById('f-cat').value,

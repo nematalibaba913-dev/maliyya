@@ -1694,7 +1694,7 @@ function closeEditModal(){ document.getElementById('edit-modal').classList.remov
 async function persistSource(meta, tx){
   const src = meta.source || 'legacy';
   const idx = meta.idx ?? -1;
-  const saveLS = (key, arr) => { localStorage.setItem(key, JSON.stringify(arr)); if(window.BudgetDB) try{ BudgetDB.setSetting(key, arr); }catch(e){} };
+  const saveLS = (key, arr) => { localStorage.setItem(key, JSON.stringify(arr)); if(window.BudgetDB) try{ BudgetDB.setSetting(key, arr); }catch(e){} if(window.MFSync) try{ MFSync.write(key, JSON.stringify(arr)); }catch(e){} };
 
   if(src === 'gelirxerc'){
     let arr=[]; try{ arr=JSON.parse(localStorage.getItem('gelirxerc_cache')||'[]'); }catch(e){}
