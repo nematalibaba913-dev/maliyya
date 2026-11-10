@@ -184,7 +184,8 @@ body.dark .kpi-gelir-card{
 .kpi-gelir-card .kpi-val{color:#6ee7b7 !important;}
 .kpi-gelir-card .kpi-sub{color:rgba(255,255,255,0.55);}
 .kpi-gelir-card .kpi-ico{background:var(--green-bg);color:#6ee7b7;font-size:14px;font-weight:700;}
-.kpi-gelir-card .kpi-ico,.kpi-xerc-card .kpi-ico{position:absolute;left:50%;top:7px;transform:translateX(-50%);width:23px;height:23px;border-radius:8px;font-size:12px;}
+.kpi-gelir-card .kpi-ico,.kpi-xerc-card .kpi-ico{width:26px;height:26px;border-radius:9px;font-size:13px;margin:0 auto;}
+.kpi-pair .kpi-slash{display:flex;justify-content:center;align-items:center;align-self:flex-start;margin-top:3px;}
 .kpi-xerc-card .kpi-ico{background:var(--red-bg);color:#fca5a5;font-size:14px;font-weight:700;}
 .kpi-xerc-card{
   background:linear-gradient(135deg,#450a0a 0%,#7f1d1d 45%,#991b1b 100%);
@@ -558,20 +559,20 @@ body.dark .cat-dropdown-list{background:var(--surface);border-color:var(--border
 
       <!-- Ümumi Gəlir -->
       <div class="kpi green kpi-gelir-card kpi-center" style="grid-column:2;grid-row:2;padding:12px 16px;">
-        <div class="kpi-top" style="margin-bottom:6px;"><span class="kpi-label">Ümumi Gəlir</span><div class="kpi-ico">▲</div></div>
+        <div class="kpi-top" style="margin-bottom:6px;"><span class="kpi-label">Ümumi Gəlir</span></div>
         <div class="kpi-pair">
           <div class="kpi-val" id="k-income" style="font-size:26px;">—</div>
-          <span class="kpi-slash">/</span>
+          <span class="kpi-slash"><div class="kpi-ico">▲</div></span>
           <div class="kpi-pair-r"><div class="kpi-val" id="k-income-c" style="font-size:26px;">—</div><div class="kpi-xar">borc/kredit xaric</div></div>
         </div>
       </div>
 
       <!-- Ümumi Xərc -->
       <div class="kpi red kpi-xerc-card kpi-center" style="grid-column:3;grid-row:2;padding:12px 16px;">
-        <div class="kpi-top" style="margin-bottom:6px;"><span class="kpi-label">Ümumi Xərc</span><div class="kpi-ico">▼</div></div>
+        <div class="kpi-top" style="margin-bottom:6px;"><span class="kpi-label">Ümumi Xərc</span></div>
         <div class="kpi-pair">
           <div class="kpi-val" id="k-expense" style="font-size:26px;">—</div>
-          <span class="kpi-slash">/</span>
+          <span class="kpi-slash"><div class="kpi-ico">▼</div></span>
           <div class="kpi-pair-r"><div class="kpi-val" id="k-expense-c" style="font-size:26px;">—</div><div class="kpi-xar">borc/kredit xaric</div></div>
         </div>
       </div>
