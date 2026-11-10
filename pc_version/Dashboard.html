@@ -183,8 +183,9 @@ body.dark .kpi-gelir-card{
 .kpi-gelir-card .kpi-label{color:rgba(255,255,255,0.7);}
 .kpi-gelir-card .kpi-val{color:#6ee7b7 !important;}
 .kpi-gelir-card .kpi-sub{color:rgba(255,255,255,0.55);}
-.kpi-gelir-card .kpi-ico{background:var(--green-bg);color:#6ee7b7;font-size:20px;font-weight:700;}
-.kpi-xerc-card .kpi-ico{background:var(--red-bg);color:#fca5a5;font-size:20px;font-weight:700;}
+.kpi-gelir-card .kpi-ico{background:var(--green-bg);color:#6ee7b7;font-size:14px;font-weight:700;}
+.kpi-gelir-card .kpi-ico,.kpi-xerc-card .kpi-ico{position:absolute;left:50%;top:7px;transform:translateX(-50%);width:23px;height:23px;border-radius:8px;font-size:12px;}
+.kpi-xerc-card .kpi-ico{background:var(--red-bg);color:#fca5a5;font-size:14px;font-weight:700;}
 .kpi-xerc-card{
   background:linear-gradient(135deg,#450a0a 0%,#7f1d1d 45%,#991b1b 100%);
   border:none;border-radius:16px;
@@ -692,6 +693,8 @@ body.dark .cat-dropdown-list{background:var(--surface);border-color:var(--border
           <div class="card-title">Əməliyyat Jurnalı</div>
           <div class="card-sub" id="tbl-count">—</div>
         </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn-sm" id="btn-showall" onclick="toggleShowAll()" style="padding:6px 14px;">⤢ Hamısını aç</button>
         <button class="btn-sm btn-excel" onclick="exportXLS()" title="Excel ixrac et" style="background:#1d7044;color:#fff;border-color:#1d7044;display:flex;align-items:center;gap:6px;padding:6px 14px;">
           <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
             <rect width="16" height="16" rx="3" fill="#1d7044"/>
@@ -702,6 +705,7 @@ body.dark .cat-dropdown-list{background:var(--surface);border-color:var(--border
           </svg>
           Excel
         </button>
+        </div>
       </div>
       <div class="tbl-wrap">
         <table>
@@ -758,7 +762,7 @@ const INCOME_TYPES_DASH  = new Set(['borc-aldim','mene-qaytardi']);
 const EXPENSE_TYPES_DASH = new Set(['borc-verdim','qaytardim']);
 const PAL = ['#ef4444','#3b82f6','#22c55e','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316'];
 
-let ALL=[], FLT=[], sCol='date', sAsc=false, pg=1;
+let ALL=[], FLT=[], sCol='date', sAsc=false, pg=1, showAll=false;
 let tblFilters={date:'',type:'',category:'',amount:'',note:''};
 const PER=15, CH={};
 
@@ -805,7 +809,7 @@ async function loadData(){
     // Eyni data həm LS həm DB-dədirsə ikiqat sayılmasın — DB varsa onu götür, yoxdursa LS
     gx = gxDB.length ? gxDB : gxLS;
     gx.forEach((t,idx)=>{
-      rows.push([t.Tarix||'', t.Emeliyyat||'', t.Kateqoriya||'', t.Qeyd||'', t.Mebleg||'0', {source:'gelirxerc', idx}]);
+      rows.push([t.Tarix||'', t.Emeliyyat||'', t.Kateqoriya||'', t.Qeyd||'', t.Mebleg||'0', {source:'gelirxerc', idx, ts:rowTs(t)}]);
     });
 
     // 2) Kredit logu
@@ -815,7 +819,7 @@ async function loadData(){
       try{ const cdb = toArr(await BudgetDB.getSetting('credit_log_v1')); if(cdb.length) crLog = cdb; }catch(e){}
     }
     crLog.forEach((t,idx)=>{
-      rows.push([t.date||t.Tarix||'', t.type||t.Emeliyyat||'', 'Kredit', t.note||t.Qeyd||'', t.amount||t.Mebleg||'0', {source:'credit_log', idx}]);
+      rows.push([t.date||t.Tarix||'', t.type||t.Emeliyyat||'', 'Kredit', t.note||t.Qeyd||'', t.amount||t.Mebleg||'0', {source:'credit_log', idx, ts:rowTs(t)}]);
     });
 
     // 3) Borc logu
@@ -825,14 +829,14 @@ async function loadData(){
       try{ const bdb = toArr(await BudgetDB.getSetting('borc_log_v1')); if(bdb.length) brLog = bdb; }catch(e){}
     }
     brLog.forEach((t,idx)=>{
-      rows.push([t.date||t.Tarix||'', t.type||t.Emeliyyat||'', 'Borc', t.note||t.Qeyd||'', t.amount||t.Mebleg||'0', {source:'borc_log', idx}]);
+      rows.push([t.date||t.Tarix||'', t.type||t.Emeliyyat||'', 'Borc', t.note||t.Qeyd||'', t.amount||t.Mebleg||'0', {source:'borc_log', idx, ts:rowTs(t)}]);
     });
 
     // 4) Köhnə mf_transactions (əgər var)
     let legacy=[];
     try{ legacy = JSON.parse(localStorage.getItem('mf_transactions')||'[]'); }catch(e){}
     legacy.forEach((t,idx)=>{
-      rows.push([t.Tarix||'', t.Emeliyyat||'', t.Kateqoriya||'', t.Qeyd||'', t.Mebleg||'0', {source:'legacy', idx}]);
+      rows.push([t.Tarix||'', t.Emeliyyat||'', t.Kateqoriya||'', t.Qeyd||'', t.Mebleg||'0', {source:'legacy', idx, ts:rowTs(t)}]);
     });
 
     buildRows(rows);
@@ -850,6 +854,13 @@ async function loadData(){
 
 
 // ── BUILD ROWS ─────────────────────────────────
+function rowTs(t){
+  if(!t) return 0;
+  const c = Date.parse(t.createdAt||t.created_at||'');
+  if(!isNaN(c)) return c;
+  const m = String(t.id||'').match(/^(\d{13})/);
+  return m ? parseInt(m[1],10) : 0;
+}
 function buildRows(raw){
   if(!raw || raw.length === 0) return;
 
@@ -934,6 +945,7 @@ function buildRows(raw){
       month: dt ? dt.getMonth() + 1 : null,
       raw: meta.raw || r,
       source: meta.source || 'local',
+      ts: meta.ts||0,
       _meta: {source: meta.source||'local', idx: meta.idx ?? i}
     };
   }).filter(r => r.amount > 0 && r.rawDate);
@@ -1588,23 +1600,25 @@ function setColFilter(col, val){ tblFilters[col]=val.trim().toLowerCase(); pg=1;
 function renderTable(){
   // Apply column filters on top of FLT
   let rows = FLT.filter(r=>{
-    if(tblFilters.date && !r.rawDate.toLowerCase().includes(tblFilters.date)) return false;
-    if(tblFilters.type && r.typeLabel !== tblFilters.type) return false;
+    if(tblFilters.date){
+      const d=r.date, dm = d ? String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear() : '';
+      if(!(r.rawDate.toLowerCase().includes(tblFilters.date) || dm.includes(tblFilters.date) || fmtAzDate(r.rawDate).toLowerCase().includes(tblFilters.date))) return false;
+    }
+    if(tblFilters.type && r.typeLabel.toLowerCase() !== tblFilters.type) return false;
     if(tblFilters.category && !r.category.toLowerCase().includes(tblFilters.category)) return false;
     if(tblFilters.amount && !String(r.amount).includes(tblFilters.amount)) return false;
     if(tblFilters.note && !r.note.toLowerCase().includes(tblFilters.note)) return false;
     return true;
   });
   const sorted=[...rows].sort((a,b)=>{
-    let va=a[sCol],vb=b[sCol];
-    if(sCol==='date'){va=a.date||new Date(0);vb=b.date||new Date(0);}
-    if(va<vb) return sAsc?-1:1; if(va>vb) return sAsc?1:-1;
-    // Eyni gün daxilində: əlavə olunma sırasına görə azalan (ən sonuncu ən üstdə)
+    const da=a.date?a.date.getTime():0, db=b.date?b.date.getTime():0;
+    if(da!==db) return db-da;            // tarix: yenidən köhnəyə
+    if((a.ts||0)!==(b.ts||0)) return (b.ts||0)-(a.ts||0);  // eyni gün: vaxt (ən son ən üstdə)
     return b.id - a.id;
   });
-  const total=sorted.length, start=(pg-1)*PER;
+  const total=sorted.length, perPg = showAll ? Math.max(total,1) : PER, start=(pg-1)*perPg;
   $('tbl-count',total+' qeyd');
-  document.getElementById('tbl-body').innerHTML=sorted.slice(start,start+PER).map(r=>`
+  document.getElementById('tbl-body').innerHTML=sorted.slice(start,start+perPg).map(r=>`
     <tr>
       <td>${fmtAzDate(r.rawDate)}</td>
       <td><span class="badge ${r.type==='gelir'?'b-green':'b-red'}">${r.typeLabel}</span></td>
@@ -1622,8 +1636,10 @@ function renderTable(){
       }</td>
     </tr>`).join('');
 
-  const pages=Math.ceil(total/PER);
+  const pages=showAll?1:Math.ceil(total/PER);
   const pag=document.getElementById('pag');
+  const tb=document.getElementById('btn-showall');
+  if(tb){ tb.style.display = total>PER ? '' : 'none'; tb.textContent = showAll ? '▤ Səhifələ' : '⤢ Hamısını aç'; }
   if(pages<=1){pag.innerHTML='';return;}
   let h=`<span>${start+1}–${Math.min(start+PER,total)} / ${total}</span>`;
   h+=`<button class="p-btn" onclick="goPg(${pg-1})" ${pg===1?'disabled':''}>‹</button>`;
@@ -1634,6 +1650,7 @@ function renderTable(){
 }
 
 function goPg(p){pg=Math.max(1,Math.min(p,Math.ceil(FLT.length/PER)));renderTable();}
+function toggleShowAll(){ showAll=!showAll; pg=1; renderTable(); }
 
 // ── XLS EXPORT (SheetJS) ────────────────────────
 function exportXLS(){
